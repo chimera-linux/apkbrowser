@@ -252,6 +252,27 @@ def get_install_if(branch, package_id):
     return result
 
 
+def get_provides(branch, package_id, pkgname):
+    db = getattr(g, '_db', None)
+    if db is None:
+        open_databases()
+        db = getattr(g, '_db', None)
+
+    sql = """
+        SELECT name, operator, version
+        FROM provides
+        WHERE pid = ?
+            AND name != ?
+    """
+
+    cur = db[branch].cursor()
+    cur.execute(sql, [package_id, pkgname])
+
+    fields = [i[0] for i in cur.description]
+    result = [dict(zip(fields, row)) for row in cur.fetchall()]
+    return result
+
+
 def sizeof_fmt(num, suffix='B'):
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
@@ -349,6 +370,7 @@ def package(branch, repo, arch, name):
     required_by = get_required_by(branch, package['id'], arch)
     subpackages = get_subpackages(branch, repo, package['origin'], arch)
     install_if = get_install_if(branch, package['id'])
+    provides = get_provides(branch, package['id'], package['name'])
 
     return render_template("package.html",
                            **get_settings(),
@@ -364,6 +386,7 @@ def package(branch, repo, arch, name):
                            num_subpackages=len(subpackages),
                            subpackages=subpackages,
                            install_if=install_if,
+                           provides=provides,
                            pkg=package)
 
 

@@ -82,7 +82,22 @@
                                         </ul>
                                     </td>
                                 </tr>
-
+                            {% endif %}
+                            {% if provides %}
+                                <tr>
+                                    <th class="header">Provides</th>
+                                    <td>
+                                        <ul class="compact">
+                                            {% for p in provides %}
+                                                {% if p.operator %}
+                                                    <li>{{ p.name }}{{ p.operator }}{{ p.version }}</li>
+                                                {% else %}
+                                                    <li>{{ p.name }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                </tr>
                             {% endif %}
                             <tr>
                                 <th class="header">Maintainer</th>
