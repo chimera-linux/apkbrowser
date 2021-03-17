@@ -27,7 +27,9 @@ def get_settings():
     return {
         "distro_name": config.get('branding', 'name'),
         "logo": config.get('branding', 'logo'),
-        "flagging": config.get('settings', 'flagging') == 'yes'
+        "flagging": config.get('settings', 'flagging') == 'yes',
+        "external_wiki": config.get('external', 'wiki'),
+        "external_mirrors": config.get('external', 'mirrors'),
     }
 
 
