@@ -6,6 +6,7 @@ from math import ceil
 from flask import Flask, render_template, redirect, url_for, g, request
 
 app = Flask(__name__)
+application = app
 
 config = configparser.ConfigParser()
 config.read("config.ini")
