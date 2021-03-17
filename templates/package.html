@@ -67,6 +67,23 @@
                                         {{ pkg.origin }}
                                     </a></td>
                             </tr>
+                            {% if install_if %}
+                                <tr>
+                                    <th class="header">Install if</th>
+                                    <td>
+                                        <ul class="compact">
+                                            {% for iif in install_if %}
+                                                {% if iif.operator %}
+                                                    <li>{{ iif.name }}{{ iif.operator }}{{ iif.version }}</li>
+                                                {% else %}
+                                                    <li>{{ iif.name }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                </tr>
+
+                            {% endif %}
                             <tr>
                                 <th class="header">Maintainer</th>
                                 <td>{{ pkg.mname }}</td>

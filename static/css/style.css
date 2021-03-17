@@ -428,3 +428,9 @@ footer a {
     }
 
 }
+
+ul.compact {
+    padding: 0;
+    margin: 0;
+    margin-left: 16px;
+}
