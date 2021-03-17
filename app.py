@@ -3,7 +3,7 @@ import sqlite3
 import configparser
 from math import ceil
 
-from flask import Flask, render_template, redirect, url_for, g, request
+from flask import Flask, render_template, redirect, url_for, g, request, abort
 
 app = Flask(__name__)
 application = app
@@ -159,7 +159,10 @@ def get_package(branch, repo, arch, name):
     cur.execute(sql, [repo, arch, name])
 
     fields = [i[0] for i in cur.description]
-    result = [dict(zip(fields, row)) for row in cur.fetchall()]
+    alldata = cur.fetchall()
+    if len(alldata) == 0:
+        return None
+    result = [dict(zip(fields, row)) for row in alldata]
     return result[0]
 
 
@@ -302,6 +305,9 @@ def packages():
 @app.route('/package/<branch>/<repo>/<arch>/<name>')
 def package(branch, repo, arch, name):
     package = get_package(branch, repo, arch, name)
+
+    if package is None:
+        return abort(404)
 
     package['size'] = sizeof_fmt(package['size'])
     package['installed_size'] = sizeof_fmt(package['installed_size'])
