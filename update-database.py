@@ -158,8 +158,8 @@ def add_packages(db, repo, arch, packages):
                           package['c'], package['k']])
         pid = cur.lastrowid
 
-        if 'P' in package:
-            for provide in package['P']:
+        if 'p' in package:
+            for provide in package['p']:
                 name, operator, ver = parse_version_operator(provide)
                 sql = """
                 INSERT INTO provides (name, version, operator, pid) VALUES (?, ?, ?, ?)

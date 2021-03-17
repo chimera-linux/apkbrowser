@@ -98,7 +98,6 @@ def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, o
     if name is not None and ':' in name:
         pjoin = 'LEFT JOIN provides ON provides.pid = packages.id'
 
-
     sql = """
     SELECT count(*) as qty
     FROM packages
@@ -139,8 +138,6 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
     ORDER BY packages.build_time DESC
     LIMIT 50 OFFSET ?
     """.format(pjoin, where)
-
-    print(sql)
 
     cur = db[branch].cursor()
     args.append(offset)
@@ -282,7 +279,6 @@ def get_provides(branch, package_id, pkgname):
 
     cur = db[branch].cursor()
     cur.execute(sql, [package_id, pkgname])
-
     fields = [i[0] for i in cur.description]
     result = [dict(zip(fields, row)) for row in cur.fetchall()]
     return result
