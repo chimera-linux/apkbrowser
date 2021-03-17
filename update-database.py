@@ -188,7 +188,7 @@ def del_packages(db, repo, arch, remove):
     for package in remove:
         print("Removing {}".format(package))
         part = package.split('-')
-        name = part[:-1]
+        name = '-'.join(part[:-1])
         ver = part[-1]
         sql = """
         DELETE FROM packages
