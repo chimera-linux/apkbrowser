@@ -434,3 +434,98 @@ ul.compact {
     margin: 0;
     margin-left: 16px;
 }
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #232729;
+    }
+
+    header {
+        border-bottom-color: #2c3133;
+    }
+
+    a.pure-menu-link {
+        color: #ccc;
+    }
+
+    .grid-head {
+        background-color: #313638;
+        color: #ccc;
+    }
+
+    .grid-body {
+        border-color: #313638;
+    }
+
+    .pure-form input[type="password"],
+    .pure-form input[type="email"],
+    .pure-form input[type="url"],
+    .pure-form input[type="number"],
+    .pure-form input[type="search"],
+    .pure-form input[type="text"],
+    .pure-form select,
+    .pure-form textarea {
+        border-color: #313638;
+        background: #313638;
+        box-shadow: none;
+        color: #ccc;
+    }
+
+    .pure-form input:not([type]):focus,
+    .pure-form input[type="password"]:focus,
+    .pure-form input[type="email"]:focus,
+    .pure-form input[type="url"]:focus,
+    .pure-form input[type="number"]:focus,
+    .pure-form input[type="search"]:focus,
+    .pure-form input[type="text"]:focus,
+    .pure-form select:focus,
+    .pure-form textarea:focus {
+        border-color: #496772;
+    }
+
+    .pure-table {
+        border-color: #313638;
+    }
+
+    .pure-table thead {
+        background-color: #313638;
+        color: #ccc;
+    }
+
+    th.header {
+        background-color: #313638;
+        color: #ccc;
+        border-bottom-color: #282c2e;
+    }
+
+    .pure-table th, .pure-table td {
+        border-left-color: #434a4d;
+        color: #ccc;
+    }
+
+    .pure-table-odd td, .pure-table-striped tr:nth-child(2n-1) td {
+        background-color: #282c2e;
+    }
+
+    #pagination li a {
+        border-color: #313638;
+    }
+
+    .pure-menu-active > .pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
+        background: #434a4d;
+    }
+
+    main#package .multi-fields details summary {
+        border: 1px solid #313638;
+        background-color: #313638;
+        color: #ccc;
+    }
+
+    main#package .multi-fields ul {
+        border: 1px solid #313638;
+    }
+
+    main#package .multi-fields ul > li:nth-of-type(2n+1) {
+        background-color: #282c2e;
+    }
+}
