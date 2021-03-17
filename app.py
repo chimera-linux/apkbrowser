@@ -127,8 +127,6 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
 
     cur = db[branch].cursor()
     args.append(offset)
-    print(sql)
-    print(args)
     cur.execute(sql, args)
 
     fields = [i[0] for i in cur.description]
