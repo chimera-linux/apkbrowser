@@ -70,7 +70,9 @@ def get_filter(name, arch, repo, maintainer, origin):
     for key in filter_fields:
         if filter_fields[key] == "" or filter_fields[key] is None:
             continue
-        if key in glob_fields:
+        if key == 'packages.name' and ':' in filter_fields[key]:
+            where.append("provides.name = ?")
+        elif key in glob_fields:
             where.append("{} GLOB ?".format(key))
         else:
             where.append("{} = ?".format(key))
@@ -92,12 +94,18 @@ def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, o
 
     where, args = get_filter(name, arch, repo, maintainer, origin)
 
+    pjoin = ''
+    if name is not None and ':' in name:
+        pjoin = 'LEFT JOIN provides ON provides.pid = packages.id'
+
+
     sql = """
     SELECT count(*) as qty
     FROM packages
     LEFT JOIN maintainer ON packages.maintainer = maintainer.id
     {}
-    """.format(where)
+    {}
+    """.format(pjoin, where)
 
     cur = db[branch].cursor()
     cur.execute(sql, args)
@@ -113,6 +121,10 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
 
     where, args = get_filter(name, arch, repo, maintainer, origin)
 
+    pjoin = ''
+    if name is not None and ':' in name:
+        pjoin = 'LEFT JOIN provides ON provides.pid = packages.id'
+
     sql = """
     SELECT packages.*, datetime(packages.build_time, 'unixepoch') as build_time,
         maintainer.name as mname, maintainer.email as memail,
@@ -123,9 +135,12 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
         AND packages.version = flagged.version
         AND packages.repo = flagged.repo
     {}
+    {}
     ORDER BY packages.build_time DESC
     LIMIT 50 OFFSET ?
-    """.format(where)
+    """.format(pjoin, where)
+
+    print(sql)
 
     cur = db[branch].cursor()
     args.append(offset)
