@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}{% endblock %} - {{ distro_name }} packages</title>
+        <link rel="stylesheet" href="/static/css/pure-min.css">
+        <link rel="stylesheet" href="/static/css/grids-responsive-min.css">
+        <link rel="stylesheet" href="/static/css/hint.min.css">
+        <link rel="stylesheet" href="/static/css/style.css">
+        <link rel="shortcut icon" href="/static/favicon.ico">
+    </head>
+    <body>
+        <div id="wrapper">
+            <header class="pure-g" id="header">
+                <div class="pure-u-1 pure-u-lg-4-24">
+                    <div class="logo">
+                        <a href="/"><img src="/static/{{ logo }}" class="pure-img" alt=""/></a>
+                    </div>
+                </div>
+                <input type="checkbox" id="menu-toggle-cb">
+                <label id="menu-toggle" for="menu-toggle-cb" onclick>
+                    <s class="bar"></s>
+                    <s class="bar"></s>
+                    <s class="bar"></s>
+                </label>
+                <div class="pure-u-1 pure-u-lg-20-24 box-relative menu-wrapper">
+                    <nav class="pure-menu pure-menu-horizontal menu-local">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-item"><a href="/packages" class="pure-menu-link">Packages</a></li>
+                            <li class="pure-menu-item"><a href="/contents" class="pure-menu-link">Contents</a></li>
+                            {% if flagging %}
+                                <li class="pure-menu-item"><a href="/flagged" class="pure-menu-link">Flagged</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    <nav class="pure-menu pure-menu-horizontal menu-external">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-item"><a href="https://wiki.alpinelinux.org" class="pure-menu-link">wiki</a>
+                            </li>
+                            <li class="pure-menu-item"><a href="https://git.alpinelinux.org"
+                                                          class="pure-menu-link">git</a></li>
+                            <li class="pure-menu-item"><a href="https://bugs.alpinelinux.org/projects/alpine/issues"
+                                                          class="pure-menu-link">bugs</a></li>
+                            <li class="pure-menu-item"><a href="https://mirrors.alpinelinux.org" class="pure-menu-link">mirrors</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </header>
+
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>

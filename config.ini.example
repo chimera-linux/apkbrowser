@@ -1,0 +1,23 @@
+[branding]
+name = postmarketOS
+logo = postmarketos.svg
+
+[repository]
+url = https://mirror.postmarketos.org/postmarketos
+branches = master
+arches = aarch64,armv7,armhf,x86_64,x86
+repos = postmarketos
+
+default-branch = master
+default-arch = aarch64
+
+[external]
+git-commit = https://gitlab.com/postmarketOS/pmaports/-/commit/{commit}
+git-repo = https://gitlab.com/postmarketOS/pmaports
+build-log = https://build.postmarketos.org
+
+[database]
+path = db
+
+[settings]
+flagging = no

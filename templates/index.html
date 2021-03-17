@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <main id="contents">
+        <div class="grid-head">Contents filter</div>
+        <div class="grid-body" id="search-form">
+            <div class="pure-g">
+                <div class="pure-u-1">
+
+                    <form class="pure-form pure-form-stacked">
+                        <div class="pure-g">
+                            <div class="pure-u-1 pure-u-md-4-24 form-field hint--top"
+                                 aria-label="Use * and ? as wildcards">
+                                <input class="pure-input-1" type="text" id="name" name="name" value="{{ form.name }}"
+                                       placeholder="Package name" autofocus>
+                            </div>
+                            <div class="pure-u-1 pure-u-md-2-24 form-field">
+                                <select class="pure-input-1" name="branch" id="branch">
+                                    <option value="" disabled>Branch</option>
+                                    {% for branch in branches %}
+                                        <option{% if branch == form.branch %} selected{% endif %}>
+                                            {{ branch }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="pure-u-1 pure-u-md-2-24 form-field">
+                                <select class="pure-input-1" name="repo" id="repo">
+                                    <option value="" disabled selected>Repository</option>
+                                    {% for repo in repos %}
+                                        <option{% if repo == form.repo %} selected{% endif %}>
+                                            {{ repo }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="pure-u-1 pure-u-md-2-24 form-field">
+                                <select class="pure-input-1" name="arch" id="arch">
+                                    <option value="" disabled selected>Arch</option>
+                                    {% for arch in arches %}
+                                        <option{% if arch == form.arch %} selected{% endif %}>
+                                            {{ arch }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="pure-u-1 pure-u-md-2-24 form-field">
+                                <select class="pure-input-1" name="origin" id="origin">
+                                    <option value="" disabled selected>Subpackages</option>
+                                    <option{% if form.arch == "hide" %} selected{% endif %} value="hide">
+                                        Hide subpackages
+                                    </option>
+                                    <option{% if form.arch == "" %} selected{% endif %} value="">
+                                        Show subpackages
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="pure-u-1 pure-u-md-5-24 form-field">
+                                <select class="pure-input-1" name="maintainer" id="maintainer">
+                                    <option value="" disabled selected>Maintainer</option>
+                                    {% for maintainer in maintainers %}
+                                        <option{% if maintainer == form.maintainer %} selected{% endif %}>
+                                            {{ maintainer }}
+                                        </option>
+                                    {% endfor %}
+
+                                </select>
+                            </div>
+                            <div class="pure-u-1 pure-u-md-3-24 form-button">
+                                <button type="submit" class="pure-button pure-button-primary">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="pure-table pure-table-striped">
+                <thead>
+                <tr>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>Project</th>
+                    <th>Licence</th>
+                    <th>Branch</th>
+                    <th>Repository</th>
+                    <th>Architecture</th>
+                    <th>Maintainer</th>
+                    <th>Build date</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for package in packages %}
+                    <tr>
+                        <td class="package">
+                            <a class="hint--right" aria-label="{{ package.description }}"
+                               href="{{ url_for('package', branch=form.branch, repo=package.repo, arch=package.arch, name=package.name) }}">
+                                {{ package.name }}
+                            </a>
+                        </td>
+                        <td class="version">
+                            <strong>
+                                <a class="hint--right text-success" aria-label="Flag this package out of date"
+                                   href="TODO">
+                                    {{ package.version }}
+                                </a>
+                            </strong>
+                        </td>
+                        <td class="url"><a href="{{ package.url }}">URL</a></td>
+                        <td class="license">{{ package.license }}</td>
+                        <td class="branch">{{ form.branch }}</td>
+                        <td class="repo">
+                            <a class="hint--right" aria-label="Filter packages in the main repository"
+                               href="?name=&branch={{ form.branch }}&repo={{ package.repo }}&arch=&maintainer=">
+                                {{ package.repo }}
+                            </a>
+                        </td>
+                        <td class="arch">
+                            <a class="hint--right" aria-label="Filter packages in the mips64 architecture"
+                               href="?name=&branch={{ form.branch }}&repo=&arch={{ package.arch }}&maintainer=">
+                                {{ package.arch }}
+                            </a>
+                        </td>
+                        <td class="maintainer">
+                            <a class="hint--right" aria-label="Filter packages maintained by {{ package.mname }}"
+                               href="?name=&branch={{ form.branch }}&repo=&arch=&maintainer={{ package.mname }}">
+                                {{ package.mname }}
+                            </a>
+                        </td>
+                        <td class="bdate">{{ package.build_time }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5">No item found...</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="pure-menu pure-menu-horizontal" id="pagination">
+            <nav>
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item">
+                        <a class="pure-menu-link"
+                           href="/packages?page=1&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}&origin={{ form.origin }}&maintainer={{ form.maintainer }}">«</a>
+                    </li>
+                    {% for i in range(pag_start, pag_stop) %}
+                        <li class="pure-menu-item{% if i + 1 == form.page %} active{% endif %}">
+                            <a class="pure-menu-link"
+                               href="/packages?page={{ i + 1 }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}&origin={{ form.origin }}&maintainer={{ form.maintainer }}">{{ i + 1 }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                    <li class="pure-menu-item">
+                        <a class="pure-menu-link"
+                           href="/packages?page={{ pages }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}&origin={{ form.origin }}&maintainer={{ form.maintainer }}">»</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </main>
+
+{% endblock %}
