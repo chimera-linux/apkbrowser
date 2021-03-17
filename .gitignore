@@ -1,5 +1,6 @@
 /db/
 /static/custom-*.png
 /static/custom-*.svg
+/static/custom-*.ico
 /config.ini
 /.idea
