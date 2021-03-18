@@ -156,7 +156,25 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="5">No item found...</td>
+                        <td colspan="9">
+                            <p>
+                                No matching packages found...
+                            </p>
+                            <p>
+                                Please note that the search works by exact matches by default.
+                                It's possible to use a * as wildcard in your search query to do partial matches.
+
+                                Possible wildcards:
+                            </p>
+                            <ul>
+                                <li><code>*</code> to match any number of characters</li>
+                                <li><code>?</code> to match exactly one character</li>
+                                <li><code>[xyz]</code> to match a single x, y or z</li>
+                                <li><code>[a-z]</code> to match any lowercase letter</li>
+                                <li><code>[^a-z]</code> to match anything that's not a lowercase letter</li>
+                            </ul>
+
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
