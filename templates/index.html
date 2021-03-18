@@ -76,6 +76,29 @@
                 </div>
             </div>
         </div>
+
+        <div class="pure-menu pure-menu-horizontal" id="pagination" style="margin-bottom: 2em;">
+            <nav>
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item">
+                        <a class="pure-menu-link"
+                           href="/packages?page=1&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}&origin={{ form.origin }}&maintainer={{ form.maintainer }}">«</a>
+                    </li>
+                    {% for i in range(pag_start, pag_stop) %}
+                        <li class="pure-menu-item{% if i + 1 == form.page %} active{% endif %}">
+                            <a class="pure-menu-link"
+                               href="/packages?page={{ i + 1 }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}&origin={{ form.origin }}&maintainer={{ form.maintainer }}">{{ i + 1 }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                    <li class="pure-menu-item">
+                        <a class="pure-menu-link"
+                           href="/packages?page={{ pages }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}&origin={{ form.origin }}&maintainer={{ form.maintainer }}">»</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
         <div class="table-responsive">
             <table class="pure-table pure-table-striped">
                 <thead>
