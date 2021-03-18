@@ -221,8 +221,8 @@ def del_packages(db, repo, arch, remove):
     for package in remove:
         print("Removing {}".format(package))
         part = package.split('-')
-        name = '-'.join(part[:-1])
-        ver = part[-1]
+        name = '-'.join(part[:-2])
+        ver = '-'.join(part[-2:])
         sql = """
         DELETE FROM packages
         WHERE repo = ?
@@ -231,6 +231,8 @@ def del_packages(db, repo, arch, remove):
             AND version = ?
         """
         cur.execute(sql, [repo, arch, name, ver])
+        if cur.rowcount != 1:
+            print("Could not remove package {} ver {} from {}/{}".format(name, ver, repo, arch))
 
 
 def clean_maintainers(db):
@@ -248,13 +250,13 @@ def update_local_repo_version(db, repo, arch, version):
     cur.execute(sql, [version, repo, arch])
 
 
-def process_apkindex(db, branch, repo, arch, contents):
+def process_apkindex(db, branch, repo, arch, contents, force=False):
     tar_file = io.BytesIO(contents)
     tar = tarfile.open(fileobj=tar_file, mode='r:gz')
     version_file = tar.extractfile('DESCRIPTION')
     version = version_file.read().decode()
     print(version)
-    if version == get_local_repo_version(db, repo, arch):
+    if version == get_local_repo_version(db, repo, arch) and not force:
         return
 
     print("The APKINDEX on the remote server is newer, updating local repository")
@@ -298,7 +300,7 @@ def process_apkindex(db, branch, repo, arch, contents):
     update_local_repo_version(db, repo, arch, version)
 
 
-def generate(config_file, branch):
+def generate(config_file, branch, force=False):
     global config
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -315,7 +317,7 @@ def generate(config_file, branch):
             apkindex = requests.get(apkindex_url)
             if apkindex.status_code == 200:
                 print(f"parsing {repo}/{arch} APKINDEX")
-                process_apkindex(db, branch, repo, arch, apkindex.content)
+                process_apkindex(db, branch, repo, arch, apkindex.content, force)
             else:
                 print("skipping {}, {} returned {}".format(arch, apkindex_url, apkindex.status_code))
     db.commit()
@@ -327,5 +329,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="apkbrowser database generator")
     parser.add_argument('config', help='path to the config file')
     parser.add_argument('branch', help='branch to generate')
+    parser.add_argument('--force', action='store_true', help='skip the database version check')
     args = parser.parse_args()
-    generate(args.config, args.branch)
+    generate(args.config, args.branch, force=args.force)
