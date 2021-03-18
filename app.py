@@ -56,14 +56,16 @@ def get_maintainers(branch):
     return map(lambda x: x[0], result)
 
 
-def get_filter(name, arch, repo, maintainer, origin):
+def get_filter(name, arch, repo, maintainer=None, origin=None, file=None, path=None):
     filter_fields = {
         "packages.name": name,
         "packages.arch": arch,
         "packages.repo": repo,
         "maintainer.name": maintainer,
+        "files.file": file,
+        "files.path": path
     }
-    glob_fields = ["packages.name"]
+    glob_fields = ["packages.name", "files.file", "files.path"]
 
     where = []
     args = []
@@ -176,6 +178,53 @@ def get_package(branch, repo, arch, name):
         return None
     result = [dict(zip(fields, row)) for row in alldata]
     return result[0]
+
+
+def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=None):
+    db = getattr(g, '_db', None)
+    if db is None:
+        open_databases()
+        db = getattr(g, '_db', None)
+
+    where, args = get_filter(name, arch, repo, file=file, path=path)
+
+    sql = """
+        SELECT count(packages.id)
+        FROM packages
+        JOIN files ON files.pid = packages.id
+        {}
+    """.format(where)
+
+    cur = db[branch].cursor()
+    cur.execute(sql, args)
+    result = cur.fetchone()
+    return result[0]
+
+
+def get_contents(branch, offset, file=None, path=None, name=None, arch=None, repo=None):
+    db = getattr(g, '_db', None)
+    if db is None:
+        open_databases()
+        db = getattr(g, '_db', None)
+
+    where, args = get_filter(name, arch, repo, maintainer=None, origin=None, file=file, path=path)
+
+    sql = """
+        SELECT packages.repo, packages.arch, packages.name, files.*
+        FROM packages
+        JOIN files ON files.pid = packages.id
+        {}
+        ORDER BY files.path, files.file
+        LIMIT 50 OFFSET ?
+    """.format(where)
+
+    cur = db[branch].cursor()
+    args.append(offset)
+    cur.execute(sql, args)
+
+    fields = [i[0] for i in cur.description]
+    result = [dict(zip(fields, row)) for row in cur.fetchall()]
+    return result
 
 
 def get_depends(branch, package_id, arch):
@@ -349,6 +398,59 @@ def packages():
                            repos=repos,
                            maintainers=maintainers,
                            packages=packages,
+                           pag_start=pag_start,
+                           pag_stop=pag_stop,
+                           pages=pages)
+
+
+@app.route('/contents')
+def contents():
+    file = request.args.get('file')
+    path = request.args.get('path')
+    name = request.args.get('name')
+    branch = request.args.get('branch')
+    repo = request.args.get('repo')
+    arch = request.args.get('arch')
+
+    page = request.args.get('page')
+
+    form = {
+        "file": file if file is not None else "",
+        "path": path if path is not None else "",
+        "name": name if name is not None else "",
+        "branch": branch if branch is not None else config.get('repository', 'default-branch'),
+        "repo": repo if repo is not None else config.get('repository', 'default-repo'),
+        "arch": arch if arch is not None else "",
+        "page": int(page) if page is not None else 1
+    }
+
+    branches = get_branches()
+    arches = get_arches()
+    repos = get_repos()
+
+    offset = (form['page'] - 1) * 50
+
+    contents = get_contents(branch=form['branch'], offset=offset, file=file, path=path, name=name, arch=arch,
+                            repo=form['repo'])
+
+    num_contents = get_num_contents(branch=form['branch'], file=file, path=path, name=name, arch=arch, repo=repo)
+    pages = ceil(num_contents / 50)
+
+    pag_start = form['page'] - 4
+    pag_stop = form['page'] + 3
+    if pag_start < 0:
+        pag_stop += abs(pag_start)
+        pag_start = 0
+    pag_stop = min(pag_stop, pages)
+
+    return render_template("contents.html",
+                           **get_settings(),
+                           title="Package index",
+                           form=form,
+                           branches=branches,
+                           arches=arches,
+                           repos=repos,
+                           contents=contents,
                            pag_start=pag_start,
                            pag_stop=pag_stop,
                            pages=pages)
