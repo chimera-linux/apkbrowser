@@ -173,7 +173,18 @@
                                 <li><code>[a-z]</code> to match any lowercase letter</li>
                                 <li><code>[^a-z]</code> to match anything that's not a lowercase letter</li>
                             </ul>
-
+                            <p>
+                                It's also possible to search for the package <code>provides</code>, but only with exact
+                                matches:
+                            </p>
+                            <ul>
+                                <li><code>cmd:hello-world</code> to find any package providing the hello-world
+                                    executable
+                                </li>
+                                <li><code>so:libupower-glib.so.3</code> to find any package providing a dynamic library
+                                </li>
+                                <li><code>pc:upower-glib</code> to find any package providing a packageconfig file</li>
+                            </ul>
                         </td>
                     </tr>
                 {% endfor %}
