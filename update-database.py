@@ -6,6 +6,8 @@ import tarfile
 import io
 from email.utils import parseaddr
 
+config = None
+
 
 def create_tables(db):
     cur = db.cursor()
@@ -137,7 +139,22 @@ def parse_version_operator(package):
     return package, None, None
 
 
-def add_packages(db, repo, arch, packages):
+def get_file_list(url):
+    print("Getting file list for {}".format(url))
+    response = requests.get(url)
+    tar_file = io.BytesIO(response.content)
+    tar = tarfile.open(fileobj=tar_file, mode='r:gz')
+    result = []
+    for member in tar.getmembers():
+        if member.name.startswith('.'):
+            continue
+        if member.type == tarfile.DIRTYPE:
+            continue
+        result.append("/" + member.name)
+    return result
+
+
+def add_packages(db, branch, repo, arch, packages):
     cur = db.cursor()
     for pkg in packages:
         print("Adding {}".format(pkg))
@@ -182,6 +199,22 @@ def add_packages(db, repo, arch, packages):
                 """
                 cur.execute(sql, [name, ver, operator, pid])
 
+        url = config.get('repository', 'url')
+        apk_url = f'{url}/{branch}/{repo}/{arch}/{package["P"]}-{package["V"]}.apk'
+        files = get_file_list(apk_url)
+        filerows = []
+        for file in files:
+            fname = os.path.basename(file)
+            fpath = os.path.dirname(file)
+            filerows.append([fname, fpath, pid])
+        sql = """
+            INSERT INTO 'files' (
+                "file", "path", "pid"
+            )
+            VALUES (?, ?, ?)
+        """
+        cur.executemany(sql, filerows)
+
 
 def del_packages(db, repo, arch, remove):
     cur = db.cursor()
@@ -215,7 +248,7 @@ def update_local_repo_version(db, repo, arch, version):
     cur.execute(sql, [version, repo, arch])
 
 
-def process_apkindex(db, repo, arch, contents):
+def process_apkindex(db, branch, repo, arch, contents):
     tar_file = io.BytesIO(contents)
     tar = tarfile.open(fileobj=tar_file, mode='r:gz')
     version_file = tar.extractfile('DESCRIPTION')
@@ -259,13 +292,14 @@ def process_apkindex(db, repo, arch, contents):
     add = remote - local
     remove = local - remote
 
-    add_packages(db, repo, arch, dict(filter(lambda arg: arg[0] in add, packages.items())))
+    add_packages(db, branch, repo, arch, dict(filter(lambda arg: arg[0] in add, packages.items())))
     del_packages(db, repo, arch, remove)
     clean_maintainers(db)
     update_local_repo_version(db, repo, arch, version)
 
 
 def generate(config_file, branch):
+    global config
     config = configparser.ConfigParser()
     config.read(config_file)
 
@@ -281,7 +315,7 @@ def generate(config_file, branch):
             apkindex = requests.get(apkindex_url)
             if apkindex.status_code == 200:
                 print(f"parsing {repo}/{arch} APKINDEX")
-                process_apkindex(db, repo, arch, apkindex.content)
+                process_apkindex(db, branch, repo, arch, apkindex.content)
             else:
                 print("skipping {}, {} returned {}".format(arch, apkindex_url, apkindex.status_code))
     db.commit()
