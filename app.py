@@ -429,11 +429,15 @@ def contents():
     repos = get_repos()
 
     offset = (form['page'] - 1) * 50
+    if form['name'] == '' and form['file'] == '' and form['path'] == '':
+        contents = []
+        num_contents = 0
+    else:
+        contents = get_contents(branch=form['branch'], offset=offset, file=file, path=path, name=name, arch=arch,
+                                repo=form['repo'])
 
-    contents = get_contents(branch=form['branch'], offset=offset, file=file, path=path, name=name, arch=arch,
-                            repo=form['repo'])
+        num_contents = get_num_contents(branch=form['branch'], file=file, path=path, name=name, arch=arch, repo=repo)
 
-    num_contents = get_num_contents(branch=form['branch'], file=file, path=path, name=name, arch=arch, repo=repo)
     pages = ceil(num_contents / 50)
 
     pag_start = form['page'] - 4
