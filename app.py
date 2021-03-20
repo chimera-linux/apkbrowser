@@ -45,11 +45,16 @@ def open_databases():
     g._db = db
 
 
-def get_maintainers(branch):
+def get_db():
     db = getattr(g, '_db', None)
     if db is None:
         open_databases()
         db = getattr(g, '_db', None)
+    return db
+
+
+def get_maintainers(branch):
+    db = get_db()
     cur = db[branch].cursor()
     cur.execute("SELECT name FROM maintainer")
     result = cur.fetchall()
@@ -89,10 +94,7 @@ def get_filter(name, arch, repo, maintainer=None, origin=None, file=None, path=N
 
 
 def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, origin=None):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     where, args = get_filter(name, arch, repo, maintainer, origin)
 
@@ -115,10 +117,7 @@ def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, o
 
 
 def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=None, origin=None):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     where, args = get_filter(name, arch, repo, maintainer, origin)
 
@@ -151,10 +150,7 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
 
 
 def get_package(branch, repo, arch, name):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     sql = """
         SELECT packages.*, datetime(packages.build_time, 'unixepoch') as build_time,
@@ -181,10 +177,7 @@ def get_package(branch, repo, arch, name):
 
 
 def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=None):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     where, args = get_filter(name, arch, repo, file=file, path=path)
 
@@ -202,10 +195,7 @@ def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=No
 
 
 def get_contents(branch, offset, file=None, path=None, name=None, arch=None, repo=None):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     where, args = get_filter(name, arch, repo, maintainer=None, origin=None, file=file, path=path)
 
@@ -228,10 +218,7 @@ def get_contents(branch, offset, file=None, path=None, name=None, arch=None, rep
 
 
 def get_depends(branch, package_id, arch):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     sql = """
         SELECT DISTINCT pa.repo, pa.arch, pa.name, MAX(pa.provider_priority)
@@ -252,10 +239,7 @@ def get_depends(branch, package_id, arch):
 
 
 def get_required_by(branch, package_id, arch):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     sql = """
         SELECT DISTINCT packages.* FROM provides
@@ -274,10 +258,7 @@ def get_required_by(branch, package_id, arch):
 
 
 def get_subpackages(branch, repo, package_id, arch):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     sql = """
         SELECT DISTINCT packages.* FROM packages
@@ -294,10 +275,7 @@ def get_subpackages(branch, repo, package_id, arch):
 
 
 def get_install_if(branch, package_id):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     sql = """
         SELECT name, operator, version
@@ -314,10 +292,7 @@ def get_install_if(branch, package_id):
 
 
 def get_provides(branch, package_id, pkgname):
-    db = getattr(g, '_db', None)
-    if db is None:
-        open_databases()
-        db = getattr(g, '_db', None)
+    db = get_db()
 
     sql = """
         SELECT name, operator, version
