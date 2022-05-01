@@ -142,10 +142,16 @@
                             <ul class="pure-menu-list">
                                 {% for dep in depends %}
                                     <li class="pure-menu-item">
-                                        <a class="pure-menu-link"
-                                           href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.name) }}">
-                                            {{ dep.name }}
-                                        </a>
+                                        {% if dep.repo %}
+                                            <a class="pure-menu-link"
+                                               href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.name) }}">
+                                                {{ dep.name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="pure-menu-link">
+                                            {{ dep.name }} [ext]
+                                            </span>
+                                        {% endif %}
                                     </li>
                                 {% else %}
                                     <li class="pure-menu-item"><a class="pure-menu-link" href="{{ path }}">None</a></li>

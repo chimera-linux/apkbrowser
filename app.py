@@ -220,21 +220,67 @@ def get_contents(branch, offset, file=None, path=None, name=None, arch=None, rep
 def get_depends(branch, package_id, arch):
     db = get_db()
 
-    sql = """
-        SELECT DISTINCT pa.repo, pa.arch, pa.name, MAX(pa.provider_priority)
+    sql_provides = """
+        SELECT de.name, pa.repo, pa.arch, pa.name, pa.provider_priority, de.name as depname
         FROM depends de
-        LEFT JOIN provides pr ON de.name = pr.name
+        JOIN provides pr ON de.name = pr.name
         LEFT JOIN packages pa ON pr.pid = pa.id
-        WHERE pa.arch = ? AND de.pid = ?
-        GROUP BY pr.name
-        ORDER BY pa.name
+        WHERE de.pid = ? AND pa.arch = ?
+    """
+
+    sql_direct = """
+        SELECT de.name, dp.repo, dp.arch, dp.name, dp.provider_priority, de.name as depname
+        FROM depends de
+        JOIN packages dp ON dp.name = de.name
+        WHERE de.pid = ? AND dp.arch = ?
+    """
+
+    sql_names = """
+        SELECT de.name as depname
+        FROM depends de
+        WHERE de.pid = ?
     """
 
     cur = db[branch].cursor()
-    cur.execute(sql, [arch, package_id])
 
+    cur.execute(sql_provides, [package_id, arch])
     fields = [i[0] for i in cur.description]
-    result = [dict(zip(fields, row)) for row in cur.fetchall()]
+    through_provides = [dict(zip(fields, row)) for row in cur.fetchall()]
+    provides = {}
+    for p in through_provides:
+        provides[p['depname']] = p
+
+    cur.execute(sql_direct, [package_id, arch])
+    fields = [i[0] for i in cur.description]
+    direct_dependency = [dict(zip(fields, row)) for row in cur.fetchall()]
+    direct = {}
+    for p in direct_dependency:
+        direct[p['depname']] = p
+
+
+    cur.execute(sql_names, [package_id])
+    fields = [i[0] for i in cur.description]
+    all_deps = [dict(zip(fields, row)) for row in cur.fetchall()]
+
+    result = []
+    for dep in all_deps:
+        prio = -1
+        name = dep['depname']
+        dep = None
+        if name in direct:
+            dep = direct[name]
+            prio = dep['provider_priority'] if dep['provider_priority'] is not None else -1
+
+        if name in provides:
+            p = provides[name]
+            if p['provider_priority'] is not None and p['provider_priority'] > prio:
+                dep = p
+
+        if dep is None:
+            result.append({'name': name})
+        else:
+            result.append(dep)
+
     return result
 
 
