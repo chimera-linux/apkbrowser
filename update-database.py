@@ -81,7 +81,7 @@ def dump_adb(adbc, rootn=None):
             if not isinstance(st, list):
                 return None
             ln = ln.removeprefix(b"- ")
-            # there may be a dict as the list element
+            # there may be a dict or string as the list element
             if ln.endswith(b":") or ln.find(b": ") > 0:
                 # this is possibly ambiguous
                 nst = {}
@@ -90,6 +90,13 @@ def dump_adb(adbc, rootn=None):
                 st = nst
                 depth += 1
                 # from here we treat it like if it wasn't a list item
+            elif ln == b"|":
+                nst = bytearray()
+                st.append(nst)
+                adbstack.append((nst, len(st) - 1))
+                st = nst
+                depth += 1
+                continue
             else:
                 st.append(ln.decode(errors="replace"))
                 continue
@@ -249,7 +256,10 @@ def get_file_list(url):
         for p in adbc["paths"]:
             if "files" in p:
                 for f in p["files"]:
-                    result.append(f"/{p['name']}/{f['name']}")
+                    if "name" not in p:
+                        result.append(f"/{f['name']}")
+                    else:
+                        result.append(f"/{p['name']}/{f['name']}")
     return result
 
 
