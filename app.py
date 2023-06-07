@@ -39,7 +39,7 @@ def open_databases():
     db = {}
     db_dir = config.get('database', 'path')
     for branch in config.get('repository', 'branches').split(','):
-        db_file = os.path.join(db_dir, f"aports-{branch}.db")
+        db_file = os.path.join(db_dir, f"cports-{branch}.db")
         db[branch] = sqlite3.connect(db_file)
 
     g._db = db
@@ -136,7 +136,7 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
         AND packages.repo = flagged.repo
     {}
     {}
-    ORDER BY packages.build_time DESC
+    ORDER BY packages.build_time DESC, packages.name ASC
     LIMIT 50 OFFSET ?
     """.format(pjoin, where)
 
@@ -354,14 +354,6 @@ def get_provides(branch, package_id, pkgname):
     return result
 
 
-def sizeof_fmt(num, suffix='B'):
-    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
-        if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
-
-
 @app.route('/')
 def index():
     return redirect(url_for("packages"))
@@ -487,9 +479,6 @@ def package(branch, repo, arch, name):
 
     if package is None:
         return abort(404)
-
-    package['size'] = sizeof_fmt(package['size'])
-    package['installed_size'] = sizeof_fmt(package['installed_size'])
 
     git_commit = package['commit'].replace('-dirty', '')
     git_url = config.get('external', 'git-commit').format(commit=git_commit, branch=branch, repo=repo, arch=arch,

@@ -1,115 +1,212 @@
 import os
-import sqlite3
-import requests
-import configparser
-import tarfile
 import io
+import sqlite3
+import configparser
+import subprocess
 from email.utils import parseaddr
 
-config = None
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+
+def get_file(url):
+    if url.startswith("file://"):
+        try:
+            with open(url.removeprefix("file://"), "rb") as inf:
+                return (200, inf.read())
+        except FileNotFoundError:
+            return (404, None)
+        except Exception:
+            return (500, None)
+    # actual url
+    import requests
+
+    req = requests.get(url)
+    if req.status_code == 200:
+        return (200, req.content)
+    else:
+        return (req.status_code, None)
+
+
+def dump_adb(adbc, rootn=None):
+    if "APK_BIN" in os.environ:
+        apk_bin = os.environ["APK_BIN"]
+    else:
+        apk_bin = "apk"
+    sp = subprocess.run(
+        [apk_bin, "adbdump", "/dev/stdin"], input=adbc, capture_output=True
+    )
+    if sp.returncode != 0:
+        return None
+    # root is a dict
+    adb = {}
+    adbstack = [(adb, None)]
+    depth = 0
+    # whether we're in the section we need
+    insect = not rootn
+    # read line by line
+    for ln in io.BytesIO(sp.stdout):
+        ol = ln
+        if ln.startswith(b"#"):
+            continue
+        olen = len(ln)
+        ln = ln.lstrip()
+        # check current depth
+        cdepth = (olen - len(ln)) / 2
+        # bail out if it's irrelevant to us
+        if rootn:
+            if cdepth == 0:
+                insect = ln.startswith(rootn)
+            elif not insect:
+                continue
+        # we might not be inside the current structure anymore
+        for i in range(int(depth - cdepth)):
+            # decode long strings
+            if isinstance(adbstack[-1][0], bytearray):
+                adbstack[-2][0][adbstack[-1][1]] = adbstack[-1][0].decode(
+                    errors="ignore"
+                )
+            adbstack.pop()
+            depth -= 1
+        # if we are in a string, append the original line to it, minus depth
+        if isinstance(adbstack[-1][0], bytearray):
+            adbstack[-1][0].extend(ol[depth * 2 :])
+            continue
+        # get the topmost structure
+        st = adbstack[-1][0]
+        # now parse
+        ln = ln.rstrip()
+        if ln.startswith(b"- "):
+            # list item
+            if not isinstance(st, list):
+                return None
+            ln = ln.removeprefix(b"- ")
+            # there may be a dict as the list element
+            if ln.endswith(b":") or ln.find(b": ") > 0:
+                # this is possibly ambiguous
+                nst = {}
+                st.append(nst)
+                adbstack.append((nst, len(st) - 1))
+                st = nst
+                depth += 1
+                # from here we treat it like if it wasn't a list item
+            else:
+                st.append(ln.decode(errors="replace"))
+                continue
+        # not a list item, so get key and value
+        if not isinstance(st, dict):
+            return None
+        kend = ln.find(b":")
+        if kend < 0:
+            return None
+        key = ln[0:kend].decode()
+        val = ln[kend + 1 :].lstrip()
+        # no value means we are starting a new dict
+        if len(val) == 0:
+            nst = {}
+            st[key] = nst
+            adbstack.append((nst, key))
+            depth += 1
+            continue
+        # a list
+        if val.startswith(b"#") and val.endswith(b"items"):
+            nst = []
+            st[key] = nst
+            adbstack.append((nst, key))
+            depth += 1
+            continue
+        # a multiline string
+        if val == b"|":
+            nst = bytearray()
+            st[key] = nst
+            adbstack.append((nst, key))
+            depth += 1
+            continue
+        # plain value
+        st[key] = val.decode(errors="replace")
+    # done
+    return adb
 
 
 def create_tables(db):
     cur = db.cursor()
     schema = [
         """
-        CREATE TABLE IF NOT EXISTS 'packages' (
-            'id' INTEGER PRIMARY KEY,
-            'name' TEXT,
-            'version' TEXT,
-            'description' TEXT,
-            'url' TEXT,
-            'license' TEXT,
-            'arch' TEXT,
-            'repo' TEXT,
-            'checksum' TEXT,
-            'size' INTEGER,
-            'installed_size' INTEGER,
-            'origin' TEXT,
-            'maintainer' INTEGER,
-            'build_time' INTEGER,
-            'commit' TEXT,
-            'provider_priority' INTEGER,
-            'fid' INTEGER
-        )
+            CREATE TABLE IF NOT EXISTS 'packages' (
+                'id' INTEGER PRIMARY KEY,
+                'name' TEXT,
+                'version' TEXT,
+                'description' TEXT,
+                'url' TEXT,
+                'license' TEXT,
+                'arch' TEXT,
+                'repo' TEXT,
+                'unique_id' TEXT,
+                'size' TEXT,
+                'installed_size' TEXT,
+                'origin' TEXT,
+                'maintainer' INTEGER,
+                'build_time' INTEGER,
+                'commit' TEXT,
+                'provider_priority' INTEGER,
+                'fid' INTEGER
+            )
         """,
         "CREATE INDEX IF NOT EXISTS 'packages_name' on 'packages' (name)",
         "CREATE INDEX IF NOT EXISTS 'packages_maintainer' on 'packages' (maintainer)",
         "CREATE INDEX IF NOT EXISTS 'packages_build_time' on 'packages' (build_time)",
         "CREATE INDEX IF NOT EXISTS 'packages_origin' on 'packages' (origin)",
         """
-        CREATE TABLE IF NOT EXISTS 'files' (
-            'id' INTEGER PRIMARY KEY,
-            'file' TEXT,
-            'path' TEXT,
-            'pid' INTEGER REFERENCES packages(id) ON DELETE CASCADE
-        )
+            CREATE TABLE IF NOT EXISTS 'files' (
+                'id' INTEGER PRIMARY KEY,
+                'file' TEXT,
+                'path' TEXT,
+                'pid' INTEGER REFERENCES packages(id) ON DELETE CASCADE
+            )
         """,
         "CREATE INDEX IF NOT EXISTS 'files_file' on 'files' (file)",
         "CREATE INDEX IF NOT EXISTS 'files_path' on 'files' (path)",
         "CREATE INDEX IF NOT EXISTS 'files_pid' on 'files' (pid)",
         """
-        CREATE TABLE IF NOT EXISTS maintainer (
-            'id' INTEGER PRIMARY KEY,
-            'name' TEXT,
-            'email' TEXT
-        )
+            CREATE TABLE IF NOT EXISTS maintainer (
+                'id' INTEGER PRIMARY KEY,
+                'name' TEXT,
+                'email' TEXT
+            )
         """,
         "CREATE INDEX IF NOT EXISTS 'maintainer_name' on maintainer (name)",
         """
-        CREATE TABLE IF NOT EXISTS 'repoversion' (
-            'repo' TEXT,
-            'arch' TEXT,
-            'version' TEXT,
-            PRIMARY KEY ('repo', 'arch')
-        ) WITHOUT ROWID
+            CREATE TABLE IF NOT EXISTS 'flagged' (
+                'origin' TEXT,
+                'version' TEXT,
+                'repo' TEXT,
+                'created' INTEGER,
+                'updated' INTEGER,
+                'reporter' TEXT,
+                'new_version' TEXT,
+                'message' TEXT,
+                PRIMARY KEY ('origin', 'version', 'repo')
+            ) WITHOUT ROWID
         """,
-        """
-        CREATE TABLE IF NOT EXISTS 'flagged' (
-            'origin' TEXT,
-            'version' TEXT,
-            'repo' TEXT,
-            'created' INTEGER,
-            'updated' INTEGER,
-            'reporter' TEXT,
-            'new_version' TEXT,
-            'message' TEXT,
-            PRIMARY KEY ('origin', 'version', 'repo')
-        ) WITHOUT ROWID
-        """
     ]
 
     fields = ["provides", "depends", "install_if"]
     for field in fields:
-        schema.append("""
-        CREATE TABLE IF NOT EXISTS '{}' (
-            'name' TEXT,
-            'version' TEXT,
-            'operator' TEXT,
-            'pid' INTEGER REFERENCES packages(id) ON DELETE CASCADE
-        )
-        """.format(field))
-        schema.append(f"CREATE INDEX IF NOT EXISTS '{field}_name' on {field} (name)")
-        schema.append(f"CREATE INDEX IF NOT EXISTS '{field}_pid' on {field} (pid)")
+        schema += [
+            f"""
+                CREATE TABLE IF NOT EXISTS '{field}' (
+                    'name' TEXT,
+                    'version' TEXT,
+                    'operator' TEXT,
+                    'pid' INTEGER REFERENCES packages(id) ON DELETE CASCADE
+                )
+            """,
+            f"CREATE INDEX IF NOT EXISTS '{field}_name' on {field} (name)",
+            f"CREATE INDEX IF NOT EXISTS '{field}_pid' on {field} (pid)",
+        ]
 
     for sql in schema:
         cur.execute(sql)
-
-
-def get_local_repo_version(db, repo, arch):
-    cur = db.cursor()
-    sql = """
-    SELECT version
-    FROM repoversion
-    WHERE repo = ?
-        AND arch = ?
-    """
-    cur.execute(sql, [repo, arch])
-    result = cur.fetchone()
-    if result:
-        return result[0]
-    else:
-        return ''
 
 
 def ensure_maintainer_exists(db, maintainer):
@@ -119,11 +216,11 @@ def ensure_maintainer_exists(db, maintainer):
         return
 
     sql = """
-    INSERT OR REPLACE INTO maintainer ('id', 'name', 'email')
-    VALUES (
-        (SELECT id FROM maintainer WHERE name=? and email=?),
-        ?, ?
-    ) 
+        INSERT OR REPLACE INTO maintainer ('id', 'name', 'email')
+        VALUES (
+            (SELECT id FROM maintainer WHERE name=? and email=?),
+            ?, ?
+        )
     """
     cursor = db.cursor()
     cursor.execute(sql, [name, email, name, email])
@@ -131,7 +228,7 @@ def ensure_maintainer_exists(db, maintainer):
 
 
 def parse_version_operator(package):
-    operators = ['>=', '<=', '><', '=', '>', '<']
+    operators = [">=", "<=", "><", "=", ">", "<", "~=", "=~", "~"]
     for op in operators:
         if op in package:
             part = package.split(op)
@@ -140,67 +237,85 @@ def parse_version_operator(package):
 
 
 def get_file_list(url):
-    print("Getting file list for {}".format(url))
-    response = requests.get(url)
-    tar_file = io.BytesIO(response.content)
-    tar = tarfile.open(fileobj=tar_file, mode='r:gz')
+    print(f"getting file list for {url}")
+    rescode, rescontent = get_file(url)
+    if not rescontent:
+        rescontent = b""
+    adbc = dump_adb(rescontent, b"paths:")
     result = []
-    for member in tar.getmembers():
-        if member.name.startswith('.'):
-            continue
-        if member.type == tarfile.DIRTYPE:
-            continue
-        result.append("/" + member.name)
+    if not adbc:
+        return result
+    if "paths" in adbc:
+        for p in adbc["paths"]:
+            if "files" in p:
+                for f in p["files"]:
+                    result.append(f"/{p['name']}/{f['name']}")
     return result
 
 
-def add_packages(db, branch, repo, arch, packages):
+def add_packages(db, branch, repo, arch, packages, changed):
     cur = db.cursor()
-    for pkg in packages:
-        print("Adding {}".format(pkg))
+    for pkg in changed:
+        print(f"adding {pkg}")
         package = packages[pkg]
-        if 'm' in package:
-            maintainer_id = ensure_maintainer_exists(db, package['m'])
+        if "maintainer" in package:
+            maintainer_id = ensure_maintainer_exists(db, package["maintainer"])
         else:
             maintainer_id = None
-        package['k'] = package['k'] if 'k' in package else None
 
         sql = """
-        INSERT INTO 'packages' (name, version, description, url, license, arch, repo, checksum, size, installed_size,
-        origin, maintainer, build_time, "commit", provider_priority)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO 'packages' (
+                name, version, description, url, license, arch,
+                repo, unique_id, size, installed_size, origin,
+                maintainer, build_time, "commit", provider_priority
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-        cur.execute(sql, [package['P'], package['V'], package['T'], package['U'], package['L'], package['A'], repo,
-                          package['C'], package['S'], package['I'], package['o'], maintainer_id, package['t'],
-                          package['c'], package['k']])
+        cur.execute(
+            sql,
+            [
+                package["name"],
+                package["version"],
+                package["description"],
+                package["url"],
+                package["license"],
+                package["arch"],
+                repo,
+                package["unique-id"],
+                package["file-size"],
+                package["installed-size"],
+                package["origin"],
+                maintainer_id,
+                package["build-time"],
+                package.get("repo-commit", "unknown"),
+                package.get("provider-priority", None),
+            ],
+        )
         pid = cur.lastrowid
 
-        if 'p' in package:
-            for provide in package['p']:
-                name, operator, ver = parse_version_operator(provide)
-                sql = """
+        for provide in package.get("provides", []):
+            name, operator, ver = parse_version_operator(provide)
+            sql = """
                 INSERT INTO provides (name, version, operator, pid) VALUES (?, ?, ?, ?)
-                """
-                cur.execute(sql, [name, ver, operator, pid])
+            """
+            cur.execute(sql, [name, ver, operator, pid])
 
-        if 'i' in package:
-            for iif in package['i']:
-                name, operator, ver = parse_version_operator(iif)
-                sql = """
+        for iif in package.get("install-if", []):
+            name, operator, ver = parse_version_operator(iif)
+            sql = """
                 INSERT INTO install_if (name, version, operator, pid) VALUES (?, ?, ?, ?)
-                """
-                cur.execute(sql, [name, ver, operator, pid])
+            """
+            cur.execute(sql, [name, ver, operator, pid])
 
-        if 'D' in package:
-            for dep in package['D']:
-                name, operator, ver = parse_version_operator(dep)
-                sql = """
+        for dep in package.get("depends", []):
+            name, operator, ver = parse_version_operator(dep)
+            sql = """
                 INSERT INTO depends (name, version, operator, pid) VALUES (?, ?, ?, ?)
-                """
-                cur.execute(sql, [name, ver, operator, pid])
+            """
+            cur.execute(sql, [name, ver, operator, pid])
 
-        url = config.get('repository', 'url')
-        apk_url = f'{url}/{branch}/{repo}/{arch}/{package["P"]}-{package["V"]}.apk'
+        url = config.get("repository", "url")
+        apk_url = f'{url}/{branch}/{repo}/{arch}/{package["name"]}-{package["version"]}.apk'
         files = get_file_list(apk_url)
         filerows = []
         for file in files:
@@ -219,116 +334,72 @@ def add_packages(db, branch, repo, arch, packages):
 def del_packages(db, repo, arch, remove):
     cur = db.cursor()
     for package in remove:
-        print("Removing {}".format(package))
-        part = package.split('-')
-        name = '-'.join(part[:-2])
-        ver = '-'.join(part[-2:])
+        print(f"removing {package}")
+        part = package.split("-")
+        name = "-".join(part[:-2])
+        ver = "-".join(part[-2:])
         sql = """
-        DELETE FROM packages
-        WHERE repo = ?
-            AND arch = ?
-            AND name = ?
-            AND version = ?
+            DELETE FROM packages
+            WHERE repo = ?
+                AND arch = ?
+                AND name = ?
+                AND version = ?
         """
         cur.execute(sql, [repo, arch, name, ver])
         if cur.rowcount != 1:
-            print("Could not remove package {} ver {} from {}/{}".format(name, ver, repo, arch))
+            print(f"could not remove {name}={ver} from {repo}/{arch}")
 
 
-def clean_maintainers(db):
-    pass
-
-
-def update_local_repo_version(db, repo, arch, version):
-    sql = """
-    INSERT OR REPLACE INTO repoversion (
-        'version', 'repo', 'arch'
-    )
-    VALUES (?, ?, ?)
-    """
-    cur = db.cursor()
-    cur.execute(sql, [version, repo, arch])
-
-
-def process_apkindex(db, branch, repo, arch, contents, force=False):
-    tar_file = io.BytesIO(contents)
-    tar = tarfile.open(fileobj=tar_file, mode='r:gz')
-    version_file = tar.extractfile('DESCRIPTION')
-    version = version_file.read().decode()
-    print(version)
-    if version == get_local_repo_version(db, repo, arch) and not force:
-        return
-
-    print("The APKINDEX on the remote server is newer, updating local repository")
-    index_file = tar.extractfile('APKINDEX')
-    index = io.StringIO(index_file.read().decode() + "\n")
-    buffer = {}
+def process_apkindex(db, branch, repo, arch, contents):
+    adbc = dump_adb(contents)
     packages = {}
-    while True:
-        line = index.readline()
-        line = line.strip()
-        if line == '' and len(buffer) == 0:
-            break
-        if line == '':
-            packages[buffer['P'] + '-' + buffer['V']] = buffer
-            buffer = {}
-        else:
-            key, value = line.split(':', maxsplit=1)
-            if key in "Dpi":
-                # Depends, Provides and Install-if are multi-value fields
-                value = value.split(' ')
-            buffer[key] = value
 
-    remote = set(packages.keys())
+    for p in adbc.get("packages", []):
+        packages[f"{p['name']}-{p['version']}"] = p
 
     sql = """
-    SELECT packages.name || '-' || packages.version
-    FROM packages
-    WHERE repo = ?
-        AND arch = ?
+        SELECT packages.name || '-' || packages.version
+        FROM packages
+        WHERE repo = ?
+            AND arch = ?
     """
     cur = db.cursor()
     cur.execute(sql, [repo, arch])
+
     local = set(map(lambda x: x[0], cur.fetchall()))
+    remote = set(packages.keys())
 
-    add = remote - local
-    remove = local - remote
+    add_packages(
+        db,
+        branch,
+        repo,
+        arch,
+        packages,
+        remote - local,
+    )
+    del_packages(db, repo, arch, local - remote)
 
-    add_packages(db, branch, repo, arch, dict(filter(lambda arg: arg[0] in add, packages.items())))
-    del_packages(db, repo, arch, remove)
-    clean_maintainers(db)
-    update_local_repo_version(db, repo, arch, version)
 
+def generate(branch):
+    url = config.get("repository", "url")
+    dbp = config.get("database", "path")
 
-def generate(config_file, branch, force=False):
-    global config
-    config = configparser.ConfigParser()
-    config.read(config_file)
-
-    url = config.get('repository', 'url')
-
-    db_path = os.path.join(config.get('database', 'path'), f"aports-{branch}.db")
-
-    db = sqlite3.connect(db_path)
+    db = sqlite3.connect(os.path.join(dbp, f"cports-{branch}.db"))
     create_tables(db)
-    for repo in config.get('repository', 'repos').split(','):
-        for arch in config.get('repository', 'arches').split(','):
-            apkindex_url = f'{url}/{branch}/{repo}/{arch}/APKINDEX.tar.gz'
-            apkindex = requests.get(apkindex_url)
-            if apkindex.status_code == 200:
+
+    for repo in config.get("repository", "repos").split(","):
+        for arch in config.get("repository", "arches").split(","):
+            apkindex_url = f"{url}/{branch}/{repo}/{arch}/APKINDEX.tar.gz"
+            idxstatus, idxcontent = get_file(apkindex_url)
+            if idxstatus == 200:
                 print(f"parsing {repo}/{arch} APKINDEX")
-                process_apkindex(db, branch, repo, arch, apkindex.content, force)
+                process_apkindex(db, branch, repo, arch, idxcontent)
             else:
-                print("skipping {}, {} returned {}".format(arch, apkindex_url, apkindex.status_code))
+                print(f"skipping {arch}, {apkindex_url} returned {idxstatus}")
+
     db.commit()
 
 
-if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser(description="apkbrowser database generator")
-    parser.add_argument('config', help='path to the config file')
-    parser.add_argument('branch', help='branch to generate')
-    parser.add_argument('--force', action='store_true', help='skip the database version check')
-    args = parser.parse_args()
-    generate(args.config, args.branch, force=args.force)
+if __name__ == "__main__":
+    for b in config.get("repository", "branches").split(","):
+        generate(b)
