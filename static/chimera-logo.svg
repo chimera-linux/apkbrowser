@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="100"
+   height="100"
+   viewBox="0 0 100 100"
+   version="1.1"
+   xml:space="preserve"
+   style="clip-rule:evenodd;fill-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2"
+   id="svg17"
+   sodipodi:docname="chimera-logo.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:serif="http://www.serif.com/"><defs
+   id="defs21" /><sodipodi:namedview
+   id="namedview19"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   showgrid="false"
+   inkscape:zoom="4.7380614"
+   inkscape:cx="27.015268"
+   inkscape:cy="63.950205"
+   inkscape:window-width="2560"
+   inkscape:window-height="1499"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg17" />
+    <rect
+   id="Logo"
+   x="0"
+   y="0"
+   width="1024"
+   height="1024"
+   style="fill:none" />
+    <g
+   id="Logo1"
+   serif:id="Logo"
+   transform="matrix(0.11160714,0,0,0.11160714,-7.142857,-7.142857)">
+        <g
+   transform="translate(-36,-36)"
+   id="g5">
+            <path
+   d="M 100,588 H 246.627 C 264.497,723.817 372.185,831.505 508,849.373 V 996 H 100 Z M 996,996 H 588 V 849.373 C 710.177,833.298 809.592,744.539 841.322,628 H 996 Z M 468,100 V 254.678 C 351.464,286.41 262.706,385.817 246.627,508 H 100 V 100 Z"
+   style="fill:#7b7b7b"
+   id="path3" />
+        </g>
+        <g
+   id="Logo2"
+   serif:id="Logo">
+            <path
+   d="M 64,552 H 210.627 C 228.497,687.817 336.185,795.505 472,813.373 V 960 H 64 Z"
+   style="fill:#f786f3"
+   id="path7" />
+            <path
+   d="M 960,960 H 552 V 813.373 C 674.177,797.298 773.592,708.539 805.322,592 H 960 Z"
+   style="fill:#d45c92"
+   id="path9" />
+            <path
+   d="M 432,64 V 218.678 C 315.464,250.41 226.706,349.817 210.627,472 H 64 V 64 Z"
+   style="fill:#ab76e4"
+   id="path11" />
+            <path
+   d="M 743.456,528 H 960 V 440 H 656 v 72 c 0,79.476 -64.524,144 -144,144 -79.476,0 -144,-64.524 -144,-144 0,-79.476 64.524,-144 144,-144 h 72 V 64 H 496 V 280.544 C 375.407,288.775 280,389.334 280,512 c 0,128.044 103.956,232 232,232 122.666,0 223.225,-95.407 231.456,-216 z"
+   style="fill:#d64f5d"
+   id="path13" />
+        </g>
+    </g>
+</svg>

@@ -4,7 +4,8 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    color: #526066;
+    color: rgb(80, 80, 80);
+    font-family: "Noto Sans";
 }
 
 h1, h2, h3 {
@@ -34,7 +35,7 @@ p {
 
 a {
     text-decoration: none;
-    color: rgb(61, 146, 201);
+    color: rgb(214, 79, 93);
 }
 
 #wrapper {
@@ -43,7 +44,7 @@ a {
 }
 
 .text-success {
-    color: #3c763d;
+    color: rgb(214, 79, 93);
 }
 
 .text-danger {
@@ -55,7 +56,7 @@ a {
 }
 
 .text-secondary {
-    color: rgb(66, 184, 221);
+    color: rgb(214, 79, 93);
 }
 
 .grid-head {
@@ -327,7 +328,7 @@ main#flag .g-recaptcha {
     float: left;
     padding: 6px 12px;
     border: 1px solid #ddd;
-    color: rgb(61, 146, 201);
+    color: rgb(214, 79, 93);
 }
 
 #pagination li {
@@ -336,7 +337,7 @@ main#flag .g-recaptcha {
 }
 
 #pagination li.active a {
-    background: rgb(61, 146, 201);
+    background: rgb(214, 79, 93);
     color: #fff;
 }
 
@@ -429,6 +430,10 @@ footer a {
 
 }
 
+.pure-button-primary, .pure-button-selected, a.pure-button-primary, a.pure-button-selected {
+    background-color: rgb(214, 79, 93);
+}
+
 ul.compact {
     padding: 0;
     margin: 0;
@@ -441,7 +446,7 @@ ul.compact {
     }
 
     header {
-        border-bottom-color: #2c3133;
+        border-bottom-color: rgb(80, 80, 80);
     }
 
     a.pure-menu-link {
@@ -449,12 +454,12 @@ ul.compact {
     }
 
     .grid-head {
-        background-color: #313638;
+        background-color: rgb(80, 80, 80);
         color: #ccc;
     }
 
     .grid-body {
-        border-color: #313638;
+        border-color: rgb(80, 80, 80);
     }
 
     .pure-form input[type="password"],
@@ -465,8 +470,8 @@ ul.compact {
     .pure-form input[type="text"],
     .pure-form select,
     .pure-form textarea {
-        border-color: #313638;
-        background: #313638;
+        border-color: rgb(80, 80, 80);
+        background: rgb(80, 80, 80);
         box-shadow: none;
         color: #ccc;
     }
@@ -480,52 +485,52 @@ ul.compact {
     .pure-form input[type="text"]:focus,
     .pure-form select:focus,
     .pure-form textarea:focus {
-        border-color: #496772;
+        border-color: #724951;
     }
 
     .pure-table {
-        border-color: #313638;
+        border-color: rgb(80, 80, 80);
     }
 
     .pure-table thead {
-        background-color: #313638;
+        background-color: rgb(80, 80, 80);
         color: #ccc;
     }
 
     th.header {
-        background-color: #313638;
+        background-color: rgb(80, 80, 80);
         color: #ccc;
-        border-bottom-color: #282c2e;
+        border-bottom-color: rgb(80, 80, 80);
     }
 
     .pure-table th, .pure-table td {
-        border-left-color: #434a4d;
+        border-left-color: #494949;
         color: #ccc;
     }
 
     .pure-table-odd td, .pure-table-striped tr:nth-child(2n-1) td {
-        background-color: #282c2e;
+        background-color: rgb(80, 80, 80);
     }
 
     #pagination li a {
-        border-color: #313638;
+        border-color: rgb(80, 80, 80);
     }
 
     .pure-menu-active > .pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
-        background: #434a4d;
+        background: #494949;
     }
 
     main#package .multi-fields details summary {
-        border: 1px solid #313638;
-        background-color: #313638;
+        border: 1px solid rgb(80, 80, 80);
+        background-color: rgb(80, 80, 80);
         color: #ccc;
     }
 
     main#package .multi-fields ul {
-        border: 1px solid #313638;
+        border: 1px solid rgb(80, 80, 80);
     }
 
     main#package .multi-fields ul > li:nth-of-type(2n+1) {
-        background-color: #282c2e;
+        background-color: rgb(80, 80, 80);
     }
 }

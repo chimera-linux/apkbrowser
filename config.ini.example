@@ -1,24 +1,23 @@
 [branding]
-name = postmarketOS
-logo = postmarketos-logo.svg
-favicon = postmarketos-favicon.ico
+name = Chimera Linux
+logo = chimera-logo.svg
+favicon = favicon
 
 [repository]
-url = https://mirror.postmarketos.org/postmarketos
-branches = master
-arches = aarch64,armv7,armhf,x86_64,x86
-repos = postmarketos
+url = https://repo.chimera-linux.org
+branches = current
+arches = aarch64,ppc64le,riscv64,x86_64
+repos = main,contrib
 
-default-branch = master
-default-repo = postmarketos
-default-arch = aarch64
+default-branch = current
+default-repo = main
+default-arch = x86_64
 
 [external]
-git-commit = https://gitlab.com/postmarketOS/pmaports/-/commit/{commit}
-git-repo = https://gitlab.com/postmarketOS/pmaports
-build-log = https://build.postmarketos.org
-wiki = https://wiki.postmarketos.org
-mirrors = https://mirrors.postmarketos.org
+git-commit = https://github.com/chimera-linux/cports/commit/{commit}
+git-repo = https://github.com/chimera-linux/cports
+build-log = https://build.chimera-linux.org
+website = https://chimera-linux.org
 
 [database]
 path = db
