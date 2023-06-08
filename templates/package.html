@@ -144,7 +144,7 @@
                                     <li class="pure-menu-item">
                                         {% if dep.repo %}
                                             <a class="pure-menu-link"
-                                               href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.name) }}">
+                                               href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.target) }}">
                                                 {{ dep.name }}
                                             </a>
                                         {% else %}

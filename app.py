@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import packaging
 import configparser
 from math import ceil
 
@@ -213,7 +214,7 @@ def get_depends(branch, package_id, arch):
     db = get_db()
 
     sql_provides = """
-        SELECT de.name, pa.repo, pa.arch, pa.name, pa.provider_priority, de.name as depname
+        SELECT de.name, pa.repo, pa.arch, pa.name, pa.provider_priority, de.name as depname, de.version as depver
         FROM depends de
         JOIN provides pr ON de.name = pr.name
         LEFT JOIN packages pa ON pr.pid = pa.id
@@ -240,7 +241,24 @@ def get_depends(branch, package_id, arch):
     through_provides = [dict(zip(fields, row)) for row in cur.fetchall()]
     provides = {}
     for p in through_provides:
-        provides[p['depname']] = p
+        depn = p['depname']
+        if depn in provides:
+            pp = provides[depn]
+            oldver = packaging.version.parse(pp['depver'])
+            newver = packaging.version.parse(pp['newver'])
+            if newver > oldver:
+                provides[depn] = p
+            elif newver == oldver:
+                oprio = -1
+                nprio = -1
+                if pp['provider_priority'] is not None:
+                    oprio = pp['provider_priority']
+                if p['provider_priority'] is not None:
+                    nprio = p['provider_priority']
+                if int(nprio) > int(oprio):
+                    provides[depn] = p
+        else:
+            provides[depn] = p
 
     cur.execute(sql_direct, [package_id, arch])
     fields = [i[0] for i in cur.description]
@@ -256,22 +274,18 @@ def get_depends(branch, package_id, arch):
 
     result = []
     for dep in all_deps:
-        prio = -1
         name = dep['depname']
         dep = None
         if name in direct:
             dep = direct[name]
-            prio = dep['provider_priority'] if dep['provider_priority'] is not None else -1
 
-        if name in provides:
-            p = provides[name]
-            if p['provider_priority'] is not None and p['provider_priority'] > prio:
-                dep = p
+        if name in provides and not dep:
+            dep = provides[name]
 
         if dep is None:
             result.append({'name': name})
         else:
-            result.append(dep)
+            result.append({'name': name, 'target': dep['name'], 'repo': dep['repo'], 'arch': dep['arch']})
 
     return result
 
