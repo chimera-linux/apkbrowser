@@ -76,8 +76,9 @@ def get_filter(name, arch, repo, maintainer=None, origin=None, file=None, path=N
     for key in filter_fields:
         if filter_fields[key] == "" or filter_fields[key] is None:
             continue
-        if key == 'packages.name' and ':' in filter_fields[key]:
-            where.append("provides.name = ?")
+        if key == 'packages.name':
+            where.append("(provides.name GLOB ? OR packages.name GLOB ?)")
+            args.append(str(filter_fields[key]))
         elif key in glob_fields:
             where.append("{} GLOB ?".format(key))
         else:
@@ -97,17 +98,13 @@ def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, o
 
     where, args = get_filter(name, arch, repo, maintainer, origin)
 
-    pjoin = ''
-    if name is not None and ':' in name:
-        pjoin = 'LEFT JOIN provides ON provides.pid = packages.id'
-
     sql = """
-    SELECT count(*) as qty
+    SELECT DISTINCT count(*) as qty
     FROM packages
     LEFT JOIN maintainer ON packages.maintainer = maintainer.id
+    LEFT JOIN provides ON provides.pid = packages.id
     {}
-    {}
-    """.format(pjoin, where)
+    """.format(where)
 
     cur = db[branch].cursor()
     cur.execute(sql, args)
@@ -120,12 +117,8 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
 
     where, args = get_filter(name, arch, repo, maintainer, origin)
 
-    pjoin = ''
-    if name is not None and ':' in name:
-        pjoin = 'LEFT JOIN provides ON provides.pid = packages.id'
-
     sql = """
-    SELECT packages.*, datetime(packages.build_time, 'unixepoch') as build_time,
+    SELECT DISTINCT packages.*, datetime(packages.build_time, 'unixepoch') as build_time,
         maintainer.name as mname, maintainer.email as memail,
         datetime(flagged.created, 'unixepoch') as flagged
     FROM packages
@@ -133,11 +126,11 @@ def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=Non
     LEFT JOIN flagged ON packages.origin = flagged.origin
         AND packages.version = flagged.version
         AND packages.repo = flagged.repo
-    {}
+    LEFT JOIN provides ON provides.pid = packages.id
     {}
     ORDER BY packages.build_time DESC, packages.name ASC
     LIMIT 50 OFFSET ?
-    """.format(pjoin, where)
+    """.format(where)
 
     cur = db[branch].cursor()
     args.append(offset)
