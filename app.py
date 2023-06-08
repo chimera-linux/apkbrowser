@@ -61,7 +61,7 @@ def get_maintainers(branch):
     return map(lambda x: x[0], result)
 
 
-def get_filter(name, arch, repo, maintainer=None, origin=None, file=None, path=None):
+def get_filter(name, arch, repo, maintainer=None, origin=None, file=None, path=None, provides=False):
     filter_fields = {
         "packages.name": name,
         "packages.arch": arch,
@@ -77,7 +77,7 @@ def get_filter(name, arch, repo, maintainer=None, origin=None, file=None, path=N
     for key in filter_fields:
         if filter_fields[key] == "" or filter_fields[key] is None:
             continue
-        if key == 'packages.name':
+        if key == 'packages.name' and provides:
             where.append("(provides.name GLOB ? OR packages.name GLOB ?)")
             args.append(str(filter_fields[key]))
         elif key in glob_fields:
@@ -172,7 +172,7 @@ def get_package(branch, repo, arch, name):
 def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=None):
     db = get_db()
 
-    where, args = get_filter(name, arch, repo, file=file, path=path)
+    where, args = get_filter(name, arch, repo, file=file, path=path, provides=False)
 
     sql = """
         SELECT count(packages.id)
@@ -190,7 +190,7 @@ def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=No
 def get_contents(branch, offset, file=None, path=None, name=None, arch=None, repo=None):
     db = get_db()
 
-    where, args = get_filter(name, arch, repo, maintainer=None, origin=None, file=file, path=path)
+    where, args = get_filter(name, arch, repo, maintainer=None, origin=None, file=file, path=path, provides=False)
 
     sql = """
         SELECT packages.repo, packages.arch, packages.name, files.*
