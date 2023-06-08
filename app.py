@@ -97,7 +97,7 @@ def get_filter(name, arch, repo, maintainer=None, origin=None, file=None, path=N
 def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, origin=None):
     db = get_db()
 
-    where, args = get_filter(name, arch, repo, maintainer, origin)
+    where, args = get_filter(name, arch, repo, maintainer, origin, provides=True)
 
     sql = """
     SELECT DISTINCT count(*) as qty
@@ -116,7 +116,7 @@ def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, o
 def get_packages(branch, offset, name=None, arch=None, repo=None, maintainer=None, origin=None):
     db = get_db()
 
-    where, args = get_filter(name, arch, repo, maintainer, origin)
+    where, args = get_filter(name, arch, repo, maintainer, origin, provides=True)
 
     sql = """
     SELECT DISTINCT packages.*, datetime(packages.build_time, 'unixepoch') as build_time,
@@ -172,7 +172,7 @@ def get_package(branch, repo, arch, name):
 def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=None):
     db = get_db()
 
-    where, args = get_filter(name, arch, repo, file=file, path=path, provides=False)
+    where, args = get_filter(name, arch, repo, file=file, path=path)
 
     sql = """
         SELECT count(packages.id)
@@ -190,7 +190,7 @@ def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=No
 def get_contents(branch, offset, file=None, path=None, name=None, arch=None, repo=None):
     db = get_db()
 
-    where, args = get_filter(name, arch, repo, maintainer=None, origin=None, file=file, path=path, provides=False)
+    where, args = get_filter(name, arch, repo, maintainer=None, origin=None, file=file, path=path)
 
     sql = """
         SELECT packages.repo, packages.arch, packages.name, files.*
