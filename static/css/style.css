@@ -440,6 +440,7 @@ ul.compact {
     margin-left: 16px;
 }
 
+/*
 @media (prefers-color-scheme: dark) {
     body {
         background: #232729;
@@ -534,3 +535,4 @@ ul.compact {
         background-color: rgb(80, 80, 80);
     }
 }
+*/
