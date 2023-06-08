@@ -31,6 +31,7 @@ def get_settings():
         "logo": config.get('branding', 'logo'),
         "favicon": config.get('branding', 'favicon'),
         "flagging": config.get('settings', 'flagging') == 'yes',
+        "show_branch": config.get('settings', 'branch') != 'no',
         "external_website": config.get('external', 'website'),
     }
 

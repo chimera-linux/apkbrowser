@@ -40,10 +40,12 @@
                                 <th class="header">License</th>
                                 <td>{{ pkg.license }}</td>
                             </tr>
+                            {% if show_branch %}
                             <tr>
                                 <th class="header">Branch</th>
                                 <td>{{ branch }}</td>
                             </tr>
+                            {% endif %}
                             <tr>
                                 <th class="header">Repository</th>
                                 <td>{{ pkg.repo }}</td>
