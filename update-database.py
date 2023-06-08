@@ -1,5 +1,6 @@
 import os
 import io
+import sys
 import sqlite3
 import configparser
 import subprocess
@@ -390,15 +391,19 @@ def process_apkindex(db, branch, repo, arch, contents):
     del_packages(db, repo, arch, local - remote)
 
 
-def generate(branch):
+def generate(branch, archs):
     url = config.get("repository", "url")
     dbp = config.get("database", "path")
 
     db = sqlite3.connect(os.path.join(dbp, f"cports-{branch}.db"))
     create_tables(db)
 
-    for repo in config.get("repository", "repos").split(","):
-        for arch in config.get("repository", "arches").split(","):
+    repos = config.get("repository", "repos").split(",")
+    if not archs:
+        archs = config.get("repository", "arches").split(",")
+
+    for repo in repos:
+        for arch in archs:
             apkindex_url = f"{url}/{branch}/{repo}/{arch}/APKINDEX.tar.gz"
             idxstatus, idxcontent = get_file(apkindex_url)
             if idxstatus == 200:
@@ -412,4 +417,4 @@ def generate(branch):
 
 if __name__ == "__main__":
     for b in config.get("repository", "branches").split(","):
-        generate(b)
+        generate(b, sys.argv[1:])
