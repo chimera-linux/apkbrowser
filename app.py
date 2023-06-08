@@ -480,7 +480,7 @@ def contents():
                            pages=pages)
 
 
-@app.route('/package/<branch>/<repo>/<arch>/<name>')
+@app.route('/package/<branch>/<path:repo>/<arch>/<name>')
 def package(branch, repo, arch, name):
     package = get_package(branch, repo, arch, name)
 
