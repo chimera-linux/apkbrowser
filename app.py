@@ -1,6 +1,6 @@
 import os
 import sqlite3
-import packaging
+import subprocess
 import configparser
 from math import ceil
 
@@ -23,6 +23,10 @@ def get_arches():
 
 def get_repos():
     return config.get('repository', 'repos').split(',')
+
+
+def get_apk():
+    return config.get('settings', 'apk', fallback = 'apk')
 
 
 def get_settings():
@@ -236,6 +240,7 @@ def get_depends(branch, package_id, arch):
     """
 
     cur = db[branch].cursor()
+    apk_bin = get_apk()
 
     cur.execute(sql_provides, [package_id, arch])
     fields = [i[0] for i in cur.description]
@@ -245,11 +250,11 @@ def get_depends(branch, package_id, arch):
         depn = p['depname']
         if depn in provides:
             pp = provides[depn]
-            oldver = packaging.version.parse(pp['depver'])
-            newver = packaging.version.parse(pp['newver'])
-            if newver > oldver:
+            cmp = subprocess.run([apk_bin, 'version', '-t', str(pp['depver']), str(p['depver'])], capture_output = True)
+            outs = cmp.stdout.strip().decode()
+            if outs == "<":
                 provides[depn] = p
-            elif newver == oldver:
+            elif outs == "=":
                 oprio = -1
                 nprio = -1
                 if pp['provider_priority'] is not None:

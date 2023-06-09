@@ -30,10 +30,7 @@ def get_file(url):
 
 
 def dump_adb(adbc, rootn=None):
-    if "APK_BIN" in os.environ:
-        apk_bin = os.environ["APK_BIN"]
-    else:
-        apk_bin = "apk"
+    apk_bin = config.get("settings", "apk", fallback="apk")
     sp = subprocess.run(
         [apk_bin, "adbdump", "/dev/stdin"], input=adbc, capture_output=True
     )

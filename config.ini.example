@@ -24,3 +24,4 @@ path = db
 
 [settings]
 flagging = no
+apk = apk
