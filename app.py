@@ -296,19 +296,21 @@ def get_depends(branch, package_id, arch):
     return result
 
 
-def get_required_by(branch, package_id, arch):
+def get_required_by(branch, package_id, pkgname, arch):
     db = get_db()
 
+    # TODO: account for version constraints
     sql = """
-        SELECT DISTINCT packages.* FROM provides
-        LEFT JOIN depends ON provides.name = depends.name
-        LEFT JOIN packages ON depends.pid = packages.id
-        WHERE packages.arch = ? AND provides.pid = ?
+        SELECT DISTINCT packages.* FROM packages
+        LEFT JOIN depends ON depends.pid = packages.id
+        WHERE packages.arch = ? AND (depends.name = ? OR depends.name IN (
+            SELECT name FROM provides WHERE provides.pid = ?
+        ))
         ORDER BY packages.name
     """
 
     cur = db[branch].cursor()
-    cur.execute(sql, [arch, package_id])
+    cur.execute(sql, [arch, pkgname, package_id])
 
     fields = [i[0] for i in cur.description]
     result = [dict(zip(fields, row)) for row in cur.fetchall()]
@@ -506,7 +508,7 @@ def package(branch, repo, arch, name):
                                                            origin=package['origin'])
 
     depends = get_depends(branch, package['id'], arch)
-    required_by = get_required_by(branch, package['id'], arch)
+    required_by = get_required_by(branch, package['id'], package['name'], arch)
     subpackages = get_subpackages(branch, repo, package['origin'], arch)
     install_if = get_install_if(branch, package['id'])
     provides = get_provides(branch, package['id'], package['name'])
