@@ -505,6 +505,7 @@ def package(branch, repo, arch, name):
 
     build_url = config.get('external', 'build-log').format(commit=git_commit, branch=branch, repo=repo, arch=arch,
                                                            name=name, version=package['version'],
+                                                           buildbot_version=package['version'].replace('.', '_'),
                                                            origin=package['origin'])
 
     depends = get_depends(branch, package['id'], arch)
