@@ -540,6 +540,12 @@ def package(branch, repo, arch, name):
 def apkindex(branch, repo, arch):
     db = get_db()
 
+    repos = get_repos()
+    arches = get_arches()
+
+    if repo not in repos or arch not in arches:
+        return abort(404)
+
     icache = get_apkindex_cache() / f"apkindex_{repo.replace('/', '_')}_{arch}.txt"
 
     if icache.is_file():
