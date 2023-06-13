@@ -2,6 +2,7 @@ import os
 import io
 import sys
 import sqlite3
+import pathlib
 import configparser
 import subprocess
 from email.utils import parseaddr
@@ -386,6 +387,13 @@ def process_apkindex(db, branch, repo, arch, contents):
         remote - local,
     )
     del_packages(db, repo, arch, local - remote)
+
+    (
+        pathlib.Path(
+            config.get("settings", "apkindex-cache", fallback="apkindex_cache")
+        )
+        / f"apkindex_{repo.replace('/', '_')}_{arch}.txt"
+    ).unlink(missing_ok=True)
 
 
 def generate(branch, archs):

@@ -1,17 +1,17 @@
 import os
+import pathlib
 import sqlite3
 import subprocess
 import configparser
 from math import ceil
 
-from flask import Flask, render_template, redirect, url_for, g, request, abort
+from flask import Flask, render_template, redirect, url_for, g, request, abort, send_file
 
 app = Flask(__name__)
 application = app
 
 config = configparser.ConfigParser()
 config.read("config.ini")
-
 
 def get_branches():
     return config.get('repository', 'branches').split(',')
@@ -27,6 +27,10 @@ def get_repos():
 
 def get_apk():
     return config.get('settings', 'apk', fallback = 'apk')
+
+
+def get_apkindex_cache():
+    return pathlib.Path(config.get('settings', 'apkindex-cache', fallback = 'apkindex_cache'))
 
 
 def get_settings():
@@ -531,6 +535,52 @@ def package(branch, repo, arch, name):
                            provides=provides,
                            pkg=package)
 
+
+@app.route('/apkindex/<branch>/<path:repo>/<arch>')
+def apkindex(branch, repo, arch):
+    db = get_db()
+
+    icache = get_apkindex_cache() / f"apkindex_{repo.replace('/', '_')}_{arch}.txt"
+
+    if icache.is_file():
+        # exists, send it as is; it will be deleted on next repo update
+        return send_file(icache, mimetype="text/plain")
+
+    sql = """
+    SELECT DISTINCT packages.* FROM packages
+    WHERE packages.repo = ?
+    ORDER BY packages.name ASC
+    """
+
+    cur = db[branch].cursor()
+    cur.execute(sql, [repo])
+
+    fields = [i[0] for i in cur.description]
+
+    res = []
+    mappings = {
+        "name": "P",
+        "origin": "o",
+        "version": "V",
+        "arch": "A",
+        "description": "T",
+        "url": "U",
+        "license": "L",
+        "build_time": "t",
+    }
+
+    icache.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(icache, "w") as outf:
+        for row in cur.fetchall():
+            for i in range(len(fields)):
+                idxn = mappings.get(fields[i], None)
+                if idxn is None:
+                    continue
+                outf.write(f"{idxn}:{str(row[i]).strip()}\n")
+            outf.write("\n")
+
+    return send_file(icache, mimetype="text/plain")
 
 if __name__ == '__main__':
     app.run()
