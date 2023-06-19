@@ -4,7 +4,18 @@ body {
     --title-height: calc(var(--content-gap) * 4);
     --title-logogap: 20px;
     --logo-height: var(--content-gap);
+    --color-listborder: #e0e0e0;
+    --color-listmod: #f0f0f0;
+    --color-listmid: #e8e8e8;
     background-color: var(--color-tbg);
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        --color-listborder: var(--color-hdr);
+        --color-listmod: #363f47;
+        --color-listmid: #2f3841;
+    }
 }
 
 #container {
@@ -71,14 +82,14 @@ body {
 /* filter */
 
 #filter-head {
-    background-color: #e0e0e0;
+    background-color: var(--color-listborder);
     padding: 0.5em 1em;
     font-weight: 700;
 }
 
 #filter-body {
     padding: 0.5em;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-listborder);
     border-top: 0;
     margin-bottom: 2em;
 }
@@ -109,13 +120,13 @@ body {
 
 #filter-switch li a {
     padding: 6px 12px;
-    border: 1px solid #ddd;
-    color: rgb(214, 79, 93);
+    border: 1px solid var(--color-listborder);
+    color: var(--color-chred);
 }
 
 #filter-switch li.active a {
     background: rgb(214, 79, 93);
-    color: #fff;
+    color: var(--color-fontlight);
 }
 
 /* pagination */
@@ -139,13 +150,13 @@ body {
 
 #pagination li a {
     padding: 6px 12px;
-    border: 1px solid #ddd;
-    color: rgb(214, 79, 93);
+    border: 1px solid var(--color-listborder);
+    color: var(--color-chred);
 }
 
 #pagination li.active a {
-    background: rgb(214, 79, 93);
-    color: #fff;
+    background: var(--color-chred);
+    color: var(--color-fontlight);
 }
 
 /* packages list */
@@ -156,29 +167,29 @@ body {
 }
 
 #main-list table {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-listborder);
     border-top: 0;
     margin-top: 2em;
     width: 100%;
 }
 
 #main-list thead {
-    background-color: #e0e0e0;
+    background-color: var(--color-listborder);
     font-weight: 700;
 }
 
 #main-list tbody tr:nth-child(odd) {
-    background-color: #f0f0f0;
+    background-color: var(--color-listmod);
 }
 
 #main-list th {
     padding: 0.5em 1em;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-listborder);
 }
 
 #main-list td {
     padding: 0.5em 1em;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-listborder);
 }
 
 #main-list td.version {
@@ -188,21 +199,22 @@ body {
 /* package info */
 
 #package {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-listborder);
 }
 
 #package th {
     padding: 0.5em 1em;
-    border: 1px solid #e0e0e0;
-    background-color: #e8e8e8;
+    border: 1px solid var(--color-listborder);
+    background-color: var(--color-listmid);
 }
 
 #package td {
     padding: 0.5em 1em;
+    border: 1px solid var(--color-listborder);
 }
 
 #package tr:nth-child(odd) {
-    background-color: #f0f0f0;
+    background-color: var(--color-listmod);
 }
 
 /* responsive layout adjustments */
