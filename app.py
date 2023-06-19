@@ -480,7 +480,7 @@ def contents():
 
     return render_template("contents.html",
                            **get_settings(),
-                           title="Package index",
+                           title="Package contents",
                            form=form,
                            branches=branches,
                            arches=arches,

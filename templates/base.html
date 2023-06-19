@@ -1,62 +1,76 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}{% endblock %} - {{ distro_name }} packages</title>
-        <link rel="stylesheet" href="/static/css/pure-min.css">
-        <link rel="stylesheet" href="/static/css/grids-responsive-min.css">
-        <link rel="stylesheet" href="/static/css/hint.min.css">
-        <link rel="stylesheet" href="/static/css/fonts.css">
-        <link rel="stylesheet" href="/static/css/style.css">
-        <link rel="icon" type="image/png" sizes="48x48" href="/static/icons/{{ favicon }}48.png">
-        <link rel="icon" type="image/png" sizes="96x96" href="/static/icons/{{ favicon }}96.png">
-        <link rel="icon" type="image/png" sizes="144x144" href="/static/icons/{{ favicon }}144.png">
-        <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/{{ favicon }}192.png">
-        <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="/static/icons/{{ favicon }}120.png">
-        <link rel="apple-touch-icon" type="image/png" sizes="152x152" href="/static/icons/{{ favicon }}152.png">
-        <link rel="apple-touch-icon" type="image/png" sizes="167x167" href="/static/icons/{{ favicon }}167.png">
-        <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/static/icons/{{ favicon }}180.png">
-    </head>
-    <body>
-        <div id="wrapper">
-            <header class="pure-g" id="header">
-                <div class="pure-u-1 pure-u-lg-4-24">
-                    <div class="logo">
-                        <a href="/"><img src="/static/{{ logo }}" class="pure-img" alt=""/></a>
-                    </div>
-                </div>
-                <input type="checkbox" id="menu-toggle-cb">
-                <label id="menu-toggle" for="menu-toggle-cb" onclick>
-                    <s class="bar"></s>
-                    <s class="bar"></s>
-                    <s class="bar"></s>
-                </label>
-                <div class="pure-u-1 pure-u-lg-20-24 box-relative menu-wrapper">
-                    <nav class="pure-menu pure-menu-horizontal menu-local">
-                        <ul class="pure-menu-list">
-                            <li class="pure-menu-item"><a href="/packages" class="pure-menu-link">Packages</a></li>
-                            <li class="pure-menu-item"><a href="/contents" class="pure-menu-link">Contents</a></li>
-                            {% if flagging %}
-                                <li class="pure-menu-item"><a href="/flagged" class="pure-menu-link">Flagged</a></li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    <nav class="pure-menu pure-menu-horizontal menu-external">
-                        <ul class="pure-menu-list">
-                            <li class="pure-menu-item"><a href="{{ external_website }}" class="pure-menu-link">website</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </header>
-
-            {% block content %}{% endblock %}
-
-            <footer>
-                <a href="https://gitlab.com/postmarketOS/apkbrowser">APKBrowser</a> by
-                <a href="https://postmarketos.org">postmarketOS</a>
-            </footer>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#d64f5d">
+<title>{{ distro_name }} packages - {% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="/static/css/reset.css">
+<link rel="stylesheet" href="/static/css/fonts.css">
+<link rel="stylesheet" href="/static/css/common.css">
+<link rel="stylesheet" href="/static/css/packages.css">
+<link rel="stylesheet" href="/static/css/hint.min.css">
+<link rel="stylesheet" href="/static/css/fonts.css">
+<link rel="icon" type="image/png" sizes="48x48" href="/static/icons/{{ favicon }}48.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/static/icons/{{ favicon }}96.png">
+<link rel="icon" type="image/png" sizes="144x144" href="/static/icons/{{ favicon }}144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icons/{{ favicon }}192.png">
+<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="/static/icons/{{ favicon }}120.png">
+<link rel="apple-touch-icon" type="image/png" sizes="152x152" href="/static/icons/{{ favicon }}152.png">
+<link rel="apple-touch-icon" type="image/png" sizes="167x167" href="/static/icons/{{ favicon }}167.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/static/icons/{{ favicon }}180.png">
+</head>
+<body>
+<div id="container">
+    <div id="header_bg"></div>
+    <nav id="header">
+        <input type="checkbox">
+        <ul>
+            <li><a href="https://chimera-linux.org">Home</a></li>
+            <li><a href="https://chimera-linux.org/news">News</a></li>
+            <li><a href="https://chimera-linux.org/downloads">Downloads</a></li>
+            <li><a href="/">Packages</a></li>
+            <li><a href="https://chimera-linux.org/docs">Docs</a></li>
+            <li><a href="https://chimera-linux.org/community">Community</a></li>
+            <li><a href="https://chimera-linux.org/development">Development</a></li>
+        </ul>
+        <div class="social">
+            <a href="https://webchat.oftc.net/?channels=#chimera-linux"><img src="/static/icons/irc.svg" alt="IRC chat"></a>
+            <a href="https://matrix.to/#/%23chimera-linux:matrix.org"><img src="/static/icons/matrix.svg" alt="Matrix chat"></a>
+            <a href="https://www.reddit.com/r/chimeralinux"><img src="/static/icons/reddit.svg" alt="Chimera Linux Reddit"></a>
+            <a href="https://floss.social/@chimera_linux"><img src="/static/icons/mastodon.svg" alt="Chimera Linux Mastodon"></a>
+            <a href="https://twitter.com/chimera_linux"><img src="/static/icons/twitter.svg" alt="Chimera Linux Twitter"></a>
         </div>
-    </body>
+    </nav>
+    <svg id="title_bg" width="100%" height="100%">
+        <defs>
+            <pattern
+                id="bgpattern" x="0" y="0" width="176" height="176"
+                patternUnits="userSpaceOnUse" patternTransform="rotate(8)"
+            >
+                <rect x="16" y="16" width="72" height="72" style="fill: var(--scolor-t1)"/>
+                <rect x="104" y="16" width="72" height="72" style="fill: var(--scolor-t2)"/>
+                <rect x="16" y="104" width="72" height="72" style="fill: var(--scolor-t3)"/>
+                <rect x="104" y="104" width="72" height="72" style="fill: var(--scolor-t4)"/>
+            </pattern>
+            <linearGradient id="bggrad">
+                <stop style="stop-color: var(--scolor-bg)" offset="15%"/>
+                <stop style="stop-color: var(--scolor-bg)" offset="100%" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#bgpattern)"/>
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#bggrad)"/>
+    </svg>
+    <div id="title">
+        <a href="/"><img id="logo" src="/static/logo.png" alt="Chimera Linux logo"></a>
+        <h1>{% block vtitle %}{% endblock %}</h1>
+    </div>
+    <div id="tile_bg"></div>
+    {% block content %}{% endblock %}
+    <div id="footer_bg"></div>
+    <div id="footer">
+        Copyright 2021-2023 Chimera Linux developers
+    </div>
+</div>
+</body>
 </html>

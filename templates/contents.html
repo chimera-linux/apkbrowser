@@ -1,181 +1,165 @@
 {% extends "base.html" %}
 
 {% block title %}{{ title }}{% endblock %}
+{% block vtitle %}{{ title }}{% endblock %}
 
 {% block content %}
-    <main id="contents">
-        <div class="grid-head">Contents filter</div>
-        <div class="grid-body" id="search-form">
-            <div class="pure-g">
-                <div class="pure-u-1">
-                    <form class="pure-form pure-form-stacked">
-                        <div class="pure-g">
-                            <div class="pure-u-1 {{ 'pure-u-md-4-24' if show_branch else 'pure-u-md-5-24' }} form-field hint--top"
-                                 aria-label="Use * and ? as wildcards">
-                                <input class="pure-input-1" type="text" id="file" name="file" value="{{ form.file }}"
-                                       placeholder="File" autofocus>
-                            </div>
-                            <div class="pure-u-1 {{ 'pure-u-md-4-24' if show_branch else 'pure-u-md-5-24' }} form-field hint--top"
-                                 aria-label="Use * and ? as wildcards">
-                                <input class="pure-input-1" type="text" id="path" name="path" value="{{ form.path }}"
-                                       placeholder="Path">
-                            </div>
-                            <div class="pure-u-1 {{ 'pure-u-md-4-24' if show_branch else 'pure-u-md-5-24' }} form-field hint--top"
-                                 aria-label="Use * and ? as wildcards">
-                                <input class="pure-input-1" type="text" id="name" name="name" value="{{ form.name }}"
-                                       placeholder="Package">
-                            </div>
-                            {% if show_branch %}
-                            <div class="pure-u-1 pure-u-md-2-24 form-field">
-                                <select class="pure-input-1" name="branch" id="branch">
-                                    <option value="" disabled>Branch</option>
-                                    {% for branch in branches %}
-                                        <option{% if branch == form.branch %} selected{% endif %}>
-                                            {{ branch }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            {% endif %}
-                            <div class="pure-u-1 pure-u-md-2-24 form-field">
-                                <select class="pure-input-1" name="repo" id="repo">
-                                    <option value="" disabled selected>Repository</option>
-                                    {% for repo in repos %}
-                                        <option{% if repo == form.repo %} selected{% endif %}>
-                                            {{ repo }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="pure-u-1 pure-u-md-2-24 form-field">
-                                <select class="pure-input-1" name="arch" id="arch">
-                                    <option value="" disabled selected>Arch</option>
-                                    {% for arch in arches %}
-                                        <option{% if arch == form.arch %} selected{% endif %}>
-                                            {{ arch }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="pure-u-1 pure-u-md-3-24 form-button">
-                                <button type="submit" class="pure-button pure-button-primary">Search</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<main id="content">
 
-        <div class="pure-menu pure-menu-horizontal" id="pagination" style="margin-bottom: 2em;">
-            <nav>
-                <ul class="pure-menu-list">
-                    <li class="pure-menu-item">
-                        <a class="pure-menu-link"
-                           href="?page=1&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">«</a>
-                    </li>
-                    {% for i in range(pag_start, pag_stop) %}
-                        <li class="pure-menu-item{% if i + 1 == form.page %} active{% endif %}">
-                            <a class="pure-menu-link"
-                               href="?page={{ i + 1 }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">{{ i + 1 }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                    <li class="pure-menu-item">
-                        <a class="pure-menu-link"
-                           href="?page={{ pages }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">»</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+<nav id="filter-switch">
+<ul>
+<li>
+<a href="/packages">Packages</a>
+</li>
+<li class="active">
+<a href="/contents">Contents</a>
+</li>
+</ul>
+</nav>
 
-        <div class="table-responsive">
-            <table class="pure-table pure-table-striped">
-                <thead>
-                <tr>
-                    <th>File</th>
-                    <th>Package</th>
-                    {% if show_branch %}
-                    <th>Branch</th>
-                    {% endif %}
-                    <th>Repository</th>
-                    <th>Architecture</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for entry in contents %}
-                    <tr>
-                        <td>{{ entry.path }}/{{ entry.file }}</td>
-                        <td>
-                            <a href="{{ url_for('package', branch=form.branch, repo=entry.repo, arch=entry.arch, name=entry.name) }}">{{ entry.name }}</a>
-                        </td>
-                        {% if show_branch %}
-                        <td>{{ form.branch }}</td>
-                        {% endif %}
-                        <td class="repo">
-                            <a class="hint--right"
-                               href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
-                                {{ entry.repo }}
-                            </a>
-                        </td>
-                        <td class="arch">
-                            <a class="hint--right"
-                               href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
-                                {{ entry.arch }}
-                            </a>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="5">
-                            {% if form.name == "" and form.file == "" and form.path == "" %}
-                                <p>
-                                    Please enter a package name, or file/path to search
-                                </p>
-                            {% else %}
-                                <p>
-                                    No matching files found...
-                                </p>
-                                <p>
-                                    Please note that the search works by exact matches by default.
-                                    It's possible to use a * as wildcard in your search query to do partial matches.
-
-                                    Possible wildcards:
-                                </p>
-                                <ul>
-                                    <li><code>*</code> to match any number of characters</li>
-                                    <li><code>?</code> to match exactly one character</li>
-                                    <li><code>[xyz]</code> to match a single x, y or z</li>
-                                    <li><code>[a-z]</code> to match any lowercase letter</li>
-                                    <li><code>[^a-z]</code> to match anything that's not a lowercase letter</li>
-                                </ul>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+<div id="filter-head">Contents filter</div>
+<div id="filter-body">
+    <form>
+        <div class="hint--top" aria-label="Use * and ? as wildcards">
+        <input type="text" id="file" name="file" value="{{ form.file }}" placeholder="File" autofocus>
         </div>
-        <div class="pure-menu pure-menu-horizontal" id="pagination">
-            <nav>
-                <ul class="pure-menu-list">
-                    <li class="pure-menu-item">
-                        <a class="pure-menu-link"
-                           href="?page=1&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">«</a>
-                    </li>
-                    {% for i in range(pag_start, pag_stop) %}
-                        <li class="pure-menu-item{% if i + 1 == form.page %} active{% endif %}">
-                            <a class="pure-menu-link"
-                               href="?page={{ i + 1 }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">{{ i + 1 }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                    <li class="pure-menu-item">
-                        <a class="pure-menu-link"
-                           href="?page={{ pages }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">»</a>
-                    </li>
-                </ul>
-            </nav>
+        <div class="hint--top" aria-label="Use * and ? as wildcards">
+        <input type="text" id="path" name="path" value="{{ form.path }}" placeholder="Path">
         </div>
-    </main>
+        <div class="hint--top" aria-label="Use * and ? as wildcards">
+        <input type="text" id="name" name="name" value="{{ form.name }}" placeholder="Package">
+        </div>
+        {% if show_branch %}
+        <select name="branch" id="branch">
+            <option value="" disabled>Branch</option>
+            {% for branch in branches %}
+                <option{% if branch == form.branch %} selected{% endif %}>
+                    {{ branch }}
+                </option>
+            {% endfor %}
+        </select>
+        {% endif %}
+        <select name="repo" id="repo">
+            <option value="" disabled selected>Repository</option>
+            {% for repo in repos %}
+                <option{% if repo == form.repo %} selected{% endif %}>
+                    {{ repo }}
+                </option>
+            {% endfor %}
+        </select>
+        <select name="arch" id="arch">
+            <option value="" disabled selected>Arch</option>
+            {% for arch in arches %}
+                <option{% if arch == form.arch %} selected{% endif %}>
+                    {{ arch }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Search</button>
+    </form>
+</div>
 
+<nav id="pagination">
+<ul>
+<li>
+    <a href="?page=1&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">«</a>
+</li>
+{% for i in range(pag_start, pag_stop) %}
+    <li class="{% if i + 1 == form.page %}active{% endif %}">
+        <a href="?page={{ i + 1 }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">{{ i + 1 }}</a>
+    </li>
+{% endfor %}
+<li>
+    <a href="?page={{ pages }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">»</a>
+</li>
+</ul>
+</nav>
+
+<div id="main-list">
+<table>
+<thead>
+<tr>
+    <th>File</th>
+    <th>Package</th>
+    {% if show_branch %}
+    <th>Branch</th>
+    {% endif %}
+    <th>Repository</th>
+    <th>Architecture</th>
+</tr>
+</thead>
+<tbody>
+{% for entry in contents %}
+<tr>
+    <td>{{ entry.path }}/{{ entry.file }}</td>
+    <td>
+        <a href="{{ url_for('package', branch=form.branch, repo=entry.repo, arch=entry.arch, name=entry.name) }}">{{ entry.name }}</a>
+    </td>
+    {% if show_branch %}
+    <td>{{ form.branch }}</td>
+    {% endif %}
+    <td class="repo">
+        <a class="hint--right" aria-label="Filter contents in the {{ entry.repo }} repository"
+           href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
+            {{ entry.repo }}
+        </a>
+    </td>
+    <td class="arch">
+        <a class="hint--right" aria-label="Filter contents in the {{ entry.arch }} architecture"
+           href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
+            {{ entry.arch }}
+        </a>
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="5">
+        {% if form.name == "" and form.file == "" and form.path == "" %}
+            <p>
+                Please enter a package name, or file/path to search
+            </p>
+        {% else %}
+            <p>
+                No matching files found...
+            </p>
+            <p>
+                Please note that the search works by exact matches by default.
+                It's possible to use a * as wildcard in your search query to do partial matches.
+
+                Possible wildcards:
+            </p>
+            <ul>
+                <li><code>*</code> to match any number of characters</li>
+                <li><code>?</code> to match exactly one character</li>
+                <li><code>[xyz]</code> to match a single x, y or z</li>
+                <li><code>[a-z]</code> to match any lowercase letter</li>
+                <li><code>[^a-z]</code> to match anything that's not a lowercase letter</li>
+            </ul>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<nav id="pagination">
+<ul>
+<li>
+    <a href="?page=1&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">«</a>
+</li>
+{% for i in range(pag_start, pag_stop) %}
+    <li class="{% if i + 1 == form.page %}active{% endif %}">
+        <a href="?page={{ i + 1 }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">{{ i + 1 }}</a>
+    </li>
+{% endfor %}
+<li>
+    <a href="?page={{ pages }}&file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ form.repo }}&arch={{ form.arch }}">»</a>
+</li>
+</ul>
+</nav>
+<div id="credit">
+<span>Based on <a href="https://gitlab.com/postmarketOS/apkbrowser">APKBrowser</a> by <a href="https://postmarketos.org">postmarketOS</a>.</span>
+</div>
+</main>
 {% endblock %}

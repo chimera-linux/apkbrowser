@@ -1,202 +1,187 @@
 {% extends "base.html" %}
 
 {% block title %}{{ title }}{% endblock %}
+{% block vtitle %}{{ title }}{% endblock %}
 
 {% block content %}
-    <main id="package">
-        <div class="grid-head">Package details</div>
-        <div class="grid-body">
-            <div class="pure-g">
-                <div class="pure-u-1 pure-u-lg-15-24">
-                    <div class="table-responsive">
-                        <table class="pure-table pure-table-striped" id="package">
-                            <tr>
-                                <th class="header">Package</th>
-                                <td>{{ pkg.name }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Version</th>
-                                <td>
-                                    <strong>
-                                        {% if flagging %}
-                                            <a class="hint--right TODO"
-                                               aria-label="TODO"
-                                               href="TODO">{{ pkg.version }}</a>
-                                        {% else %}
-                                            {{ pkg.version }}
-                                        {% endif %}
-                                    </strong>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="header">Description</th>
-                                <td>{{ pkg.description }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Project</th>
-                                <td><a href="{{ pkg.url }}">{{ pkg.url }}</a></td>
-                            </tr>
-                            <tr>
-                                <th class="header">License</th>
-                                <td>{{ pkg.license }}</td>
-                            </tr>
-                            {% if show_branch %}
-                            <tr>
-                                <th class="header">Branch</th>
-                                <td>{{ branch }}</td>
-                            </tr>
+<main id="content">
+
+<table id="package">
+    <tr>
+        <th class="header">Package</th>
+        <td>{{ pkg.name }}</td>
+    </tr>
+    <tr>
+        <th class="header">Version</th>
+        <td>{{ pkg.version }}</td>
+    </tr>
+    <tr>
+        <th class="header">Description</th>
+        <td>{{ pkg.description }}</td>
+    </tr>
+    <tr>
+        <th class="header">Project</th>
+        <td><a href="{{ pkg.url }}">{{ pkg.url }}</a></td>
+    </tr>
+    <tr>
+        <th class="header">License</th>
+        <td>{{ pkg.license }}</td>
+    </tr>
+    {% if show_branch %}
+    <tr>
+        <th class="header">Branch</th>
+        <td>{{ branch }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th class="header">Repository</th>
+        <td>{{ pkg.repo }}</td>
+    </tr>
+    <tr>
+        <th class="header">Architecture</th>
+        <td>{{ pkg.arch }}</td>
+    </tr>
+    <tr>
+        <th class="header">Size</th>
+        <td>{{ pkg.size }}</td>
+    </tr>
+    <tr>
+        <th class="header">Installed size</th>
+        <td>{{ pkg.installed_size }}</td>
+    </tr>
+    <tr>
+        <th class="header">Origin</th>
+        <td>
+            <a href="{{ url_for('package', repo=pkg.repo, branch=branch, arch=pkg.arch, name=pkg.origin) }}">
+                {{ pkg.origin }}
+            </a></td>
+    </tr>
+    {% if depends %}
+        <tr>
+            <th class="header">Depends</th>
+            <td>
+                <details>
+                <summary>Depends ({{ num_depends }})</summary>
+                <ul class="compact">
+                    {% for dep in depends %}
+                        <li>
+                            {% if dep.repo %}
+                                <a href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.target) }}">
+                                    {{ dep.name }}
+                                </a>
+                            {% else %}
+                                <span>
+                                {{ dep.name }} [ext]
+                                </span>
                             {% endif %}
-                            <tr>
-                                <th class="header">Repository</th>
-                                <td>{{ pkg.repo }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Architecture</th>
-                                <td>{{ pkg.arch }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Size</th>
-                                <td>{{ pkg.size }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Installed size</th>
-                                <td>{{ pkg.installed_size }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Origin</th>
-                                <td>
-                                    <a href="{{ url_for('package', repo=pkg.repo, branch=branch, arch=pkg.arch, name=pkg.origin) }}">
-                                        {{ pkg.origin }}
-                                    </a></td>
-                            </tr>
-                            {% if install_if %}
-                                <tr>
-                                    <th class="header">Install if</th>
-                                    <td>
-                                        <ul class="compact">
-                                            {% for iif in install_if %}
-                                                {% if iif.operator %}
-                                                    <li>{{ iif.name }}{{ iif.operator }}{{ iif.version }}</li>
-                                                {% else %}
-                                                    <li>{{ iif.name }}</li>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </ul>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                            {% if provides %}
-                                <tr>
-                                    <th class="header">Provides</th>
-                                    <td>
-                                        <ul class="compact">
-                                            {% for p in provides %}
-                                                {% if p.operator %}
-                                                    <li>{{ p.name }}{{ p.operator }}{{ p.version }}</li>
-                                                {% else %}
-                                                    <li>{{ p.name }}</li>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </ul>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                            <tr>
-                                <th class="header">Maintainer</th>
-                                <td>{{ pkg.mname }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Build time</th>
-                                <td>{{ pkg.build_time }}</td>
-                            </tr>
-                            <tr>
-                                <th class="header">Commit</th>
-                                <td><a href="{{ git_url }}">{{ pkg.commit }}</a></td>
-                            </tr>
-                            <tr>
-                                <th class="header">Git repository</th>
-                                <td><a href="{{ repo_url }}">Git repository</a></td>
-                            </tr>
-                            <tr>
-                                <th class="header">Build log</th>
-                                <td><a href="{{ build_log_url }}">Build log</a></td>
-                            </tr>
-                            <tr>
-                                <th class="header">Contents</th>
-                                <td>
-                                    <a href="/contents?name={{ pkg.name }}&repo={{ pkg.repo }}&branch={{ branch }}&arch={{ pkg.arch }}">
-                                        Contents of package
-                                    </a></td>
-                            </tr>
-                        </table>
-                    </div>
-                    {% if flagging %}
-                        <div class="flag-button">
-                            <a class="pure-button" href="TODO">Flag</a>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="pure-u-1 pure-u-lg-3-24"></div>
-                <div class="pure-u-1 pure-u-lg-6-24 multi-fields">
-                    <details>
-                        <summary>Depends ({{ num_depends }})</summary>
-                        <div class="pure-menu custom-restricted-width">
-                            <ul class="pure-menu-list">
-                                {% for dep in depends %}
-                                    <li class="pure-menu-item">
-                                        {% if dep.repo %}
-                                            <a class="pure-menu-link"
-                                               href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.target) }}">
-                                                {{ dep.name }}
-                                            </a>
-                                        {% else %}
-                                            <span class="pure-menu-link">
-                                            {{ dep.name }} [ext]
-                                            </span>
-                                        {% endif %}
-                                    </li>
-                                {% else %}
-                                    <li class="pure-menu-item"><a class="pure-menu-link" href="{{ path }}">None</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </details>
-                    <details>
-                        <summary>Required by ({{ num_required_by }})</summary>
-                        <div class="pure-menu custom-restricted-width">
-                            <ul class="pure-menu-list">
-                                {% for dep in required_by %}
-                                    <li class="pure-menu-item">
-                                        <a class="pure-menu-link"
-                                           href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.name) }}">
-                                            {{ dep.name }}
-                                        </a>
-                                    </li>
-                                {% else %}
-                                    <li class="pure-menu-item"><a class="pure-menu-link" href="{{ path }}">None</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </details>
-                    <details>
-                        <summary>Sub Packages ({{ num_subpackages }})</summary>
-                        <div class="pure-menu custom-restricted-width">
-                            <ul class="pure-menu-list">
-                                {% for dep in subpackages %}
-                                    <li class="pure-menu-item">
-                                        <a class="pure-menu-link"
-                                           href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.name) }}">
-                                            {{ dep.name }}
-                                        </a>
-                                    </li>
-                                {% else %}
-                                    <li class="pure-menu-item"><a class="pure-menu-link" href="{{ path }}">None</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </details>
-                </div>
-            </div>
-        </div>
-    </main>
+                        </li>
+                    {% endfor %}
+                </ul>
+                </details>
+            </td>
+        </tr>
+    {% endif %}
+    {% if required_by %}
+        <tr>
+            <th class="header">Required by</th>
+            <td>
+                <details>
+                <summary>Required by ({{ num_required_by }})</summary>
+                <ul class="compact">
+                    {% for dep in required_by %}
+                        <li>
+                            <a href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.name) }}">
+                                {{ dep.name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                </details>
+            </td>
+        </tr>
+    {% endif %}
+    {% if provides %}
+        <tr>
+            <th class="header">Provides</th>
+            <td>
+                <details>
+                <summary>Provides</summary>
+                <ul class="compact">
+                    {% for p in provides %}
+                        {% if p.operator %}
+                            <li>{{ p.name }}{{ p.operator }}{{ p.version }}</li>
+                        {% else %}
+                            <li>{{ p.name }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                </details>
+            </td>
+        </tr>
+    {% endif %}
+    {% if install_if %}
+        <tr>
+            <th class="header">Install if</th>
+            <td>
+                <details>
+                <summary>Install if</summary>
+                <ul class="compact">
+                    {% for iif in install_if %}
+                        {% if iif.operator %}
+                            <li>{{ iif.name }}{{ iif.operator }}{{ iif.version }}</li>
+                        {% else %}
+                            <li>{{ iif.name }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                </details>
+            </td>
+        </tr>
+    {% endif %}
+    <tr>
+        <th class="header">Subpackages ({{ num_subpackages }})</th>
+        <td>
+            <details>
+            <summary>Subpackages</summary>
+            <ul class="compact">
+                {% for dep in subpackages %}
+                    <li>
+                        <a href="{{ url_for('package', branch=branch, repo=dep.repo, arch=dep.arch, name=dep.name) }}">
+                            {{ dep.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <th class="header">Maintainer</th>
+        <td>{{ pkg.mname }}</td>
+    </tr>
+    <tr>
+        <th class="header">Build time</th>
+        <td>{{ pkg.build_time }}</td>
+    </tr>
+    <tr>
+        <th class="header">Commit</th>
+        <td><a href="{{ git_url }}">{{ pkg.commit }}</a></td>
+    </tr>
+    <tr>
+        <th class="header">Git repository</th>
+        <td><a href="{{ repo_url }}">Git repository</a></td>
+    </tr>
+    <tr>
+        <th class="header">Build log</th>
+        <td><a href="{{ build_log_url }}">Build log</a></td>
+    </tr>
+    <tr>
+        <th class="header">Contents</th>
+        <td>
+            <a href="/contents?name={{ pkg.name }}&repo={{ pkg.repo }}&branch={{ branch }}&arch={{ pkg.arch }}">
+                Contents of package
+            </a></td>
+    </tr>
+</table>
+</main>
 {% endblock %}
