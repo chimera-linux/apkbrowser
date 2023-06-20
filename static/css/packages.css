@@ -91,7 +91,7 @@ body {
     padding: 0.5em;
     border: 1px solid var(--color-listborder);
     border-top: 0;
-    margin-bottom: 2em;
+    /*! margin-bottom: 2em; */
 }
 
 #filter-body input {
@@ -143,8 +143,8 @@ body {
 }
 
 #pagination li {
-    display: inline;
-    margin: 0;
+    display: inline-block;
+    margin: 0.5em 0;
     padding: 0;
 }
 
@@ -163,7 +163,7 @@ body {
 
 #main-list {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: unset;
 }
 
 #main-list table {
@@ -233,10 +233,23 @@ body {
         padding-right: var(--side-padding);
         padding-top: 0;
         padding-bottom: var(--content-halfgap);
+        display: grid;
     }
 
     #filter-switch {
         text-align: center;
         margin-top: 1.5em;
+    }
+    
+    #filter-body {
+        margin-bottom: 0;
+    }
+    
+    #pagination li:first-child, #pagination li:last-child {
+        display: block;
+    }
+    
+    #main-list {
+        overflow-x: auto;
     }
 }
