@@ -117,20 +117,17 @@
     <td class="branch">{{ form.branch }}</td>
     {% endif %}
     <td class="repo">
-        <a class="hint--right" aria-label="Filter packages in the {{ package.repo }} repository"
-           href="?name=&branch={{ form.branch }}&repo={{ package.repo }}&arch=&maintainer=">
+        <a href="?name=&branch={{ form.branch }}&repo={{ package.repo }}&arch=&maintainer=">
             {{ package.repo }}
         </a>
     </td>
     <td class="arch">
-        <a class="hint--right" aria-label="Filter packages in the {{ package.arch }} architecture"
-           href="?name=&branch={{ form.branch }}&repo=&arch={{ package.arch }}&maintainer=">
+        <a href="?name=&branch={{ form.branch }}&repo=&arch={{ package.arch }}&maintainer=">
             {{ package.arch }}
         </a>
     </td>
     <td class="maintainer">
-        <a class="hint--right" aria-label="Filter packages maintained by {{ package.mname }}"
-           href="?name=&branch={{ form.branch }}&repo=&arch=&maintainer={{ package.mname }}">
+        <a href="?name=&branch={{ form.branch }}&repo=&arch=&maintainer={{ package.mname }}">
             {{ package.mname }}
         </a>
     </td>

@@ -99,14 +99,12 @@
     <td>{{ form.branch }}</td>
     {% endif %}
     <td class="repo">
-        <a class="hint--right" aria-label="Filter contents in the {{ entry.repo }} repository"
-           href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
+        <a href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
             {{ entry.repo }}
         </a>
     </td>
     <td class="arch">
-        <a class="hint--right" aria-label="Filter contents in the {{ entry.arch }} architecture"
-           href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
+        <a href="?file={{ form.file }}&path={{ form.path }}&name={{ form.name }}&branch={{ form.branch }}&repo={{ entry.repo }}&arch={{ entry.arch }}">
             {{ entry.arch }}
         </a>
     </td>
