@@ -499,15 +499,19 @@ def package(branch, repo, arch, name):
         return abort(404)
 
     git_commit = package['commit'].replace('-dirty', '')
-    git_url = config.get('external', 'git-commit').format(commit=git_commit, branch=branch, repo=repo, arch=arch,
+
+    # for urls we only care about the first part
+    rpart = repo.split('/')[0]
+
+    git_url = config.get('external', 'git-commit').format(commit=git_commit, branch=branch, repo=rpart, arch=arch,
                                                           name=name, version=package['version'],
                                                           origin=package['origin'])
 
-    repo_url = config.get('external', 'git-repo').format(commit=git_commit, branch=branch, repo=repo, arch=arch,
+    repo_url = config.get('external', 'git-repo').format(commit=git_commit, branch=branch, repo=rpart, arch=arch,
                                                          name=name, version=package['version'],
                                                          origin=package['origin'])
 
-    build_url = config.get('external', 'build-log').format(commit=git_commit, branch=branch, repo=repo, arch=arch,
+    build_url = config.get('external', 'build-log').format(commit=git_commit, branch=branch, repo=rpart, arch=arch,
                                                            name=name, version=package['version'],
                                                            buildbot_version=package['version'].replace('.', '_'),
                                                            origin=package['origin'])
