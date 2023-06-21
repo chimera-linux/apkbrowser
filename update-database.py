@@ -396,6 +396,35 @@ def process_apkindex(db, branch, repo, arch, contents):
     ).unlink(missing_ok=True)
 
 
+def prune_maintainers(db):
+    cur = db.cursor()
+
+    sql = """
+        SELECT DISTINCT maintainer
+        FROM packages
+    """
+    cur.execute(sql, [])
+
+    pmaint = set(map(lambda x: x[0], cur.fetchall()))
+
+    sql = """
+        SELECT id
+        FROM maintainer
+    """
+    cur = db.cursor()
+    cur.execute(sql, [])
+
+    mmaint = set(map(lambda x: x[0], cur.fetchall()))
+
+    sql = """
+        DELETE FROM maintainer
+        WHERE id = ?
+    """
+    for idn in mmaint - pmaint:
+        print("DEL", idn)
+        cur.execute(sql, [idn])
+
+
 def generate(branch, archs):
     url = config.get("repository", "url")
     dbp = config.get("database", "path")
@@ -416,6 +445,8 @@ def generate(branch, archs):
                 process_apkindex(db, branch, repo, arch, idxcontent)
             else:
                 print(f"skipping {arch}, {apkindex_url} returned {idxstatus}")
+
+    prune_maintainers(db)
 
     db.commit()
 
