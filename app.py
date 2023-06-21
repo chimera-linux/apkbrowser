@@ -321,17 +321,17 @@ def get_required_by(branch, package_id, pkgname, arch):
     return result
 
 
-def get_subpackages(branch, repo, package_id, arch):
+def get_subpackages(branch, package_id, arch):
     db = get_db()
 
     sql = """
         SELECT DISTINCT packages.* FROM packages
-        WHERE repo = ? AND arch = ? AND origin = ?
+        WHERE arch = ? AND origin = ?
         ORDER BY packages.name
     """
 
     cur = db[branch].cursor()
-    cur.execute(sql, [repo, arch, package_id])
+    cur.execute(sql, [arch, package_id])
 
     fields = [i[0] for i in cur.description]
     result = [dict(zip(fields, row)) for row in cur.fetchall()]
@@ -518,7 +518,7 @@ def package(branch, repo, arch, name):
 
     depends = get_depends(branch, package['id'], arch)
     required_by = get_required_by(branch, package['id'], package['name'], arch)
-    subpackages = get_subpackages(branch, repo, package['origin'], arch)
+    subpackages = get_subpackages(branch, package['origin'], arch)
     install_if = get_install_if(branch, package['id'])
     provides = get_provides(branch, package['id'], package['name'])
 
