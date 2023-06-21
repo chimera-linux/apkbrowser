@@ -163,7 +163,7 @@ body {
 
 #main-list {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: clip;
 }
 
 #main-list table {
