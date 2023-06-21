@@ -105,7 +105,7 @@
             <th class="header">Provides</th>
             <td>
                 <details>
-                <summary>Provides</summary>
+                <summary>Provides ({{ num_provides }})</summary>
                 <ul class="compact">
                     {% for p in provides %}
                         {% if p.operator %}
@@ -124,7 +124,7 @@
             <th class="header">Install if</th>
             <td>
                 <details>
-                <summary>Install if</summary>
+                <summary>Install if ({{ num_install_if }})</summary>
                 <ul class="compact">
                     {% for iif in install_if %}
                         {% if iif.operator %}
@@ -139,10 +139,10 @@
         </tr>
     {% endif %}
     <tr>
-        <th class="header">Subpackages ({{ num_subpackages }})</th>
+        <th class="header">Subpackages</th>
         <td>
             <details>
-            <summary>Subpackages</summary>
+            <summary>Subpackages ({{ num_subpackages }})</summary>
             <ul class="compact">
                 {% for dep in subpackages %}
                     <li>

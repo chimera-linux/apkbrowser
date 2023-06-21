@@ -535,7 +535,9 @@ def package(branch, repo, arch, name):
                            required_by=required_by,
                            num_subpackages=len(subpackages),
                            subpackages=subpackages,
+                           num_install_if=len(install_if),
                            install_if=install_if,
+                           num_provides=len(provides),
                            provides=provides,
                            pkg=package)
 
