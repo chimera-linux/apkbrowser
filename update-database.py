@@ -411,7 +411,6 @@ def prune_maintainers(db):
         SELECT id
         FROM maintainer
     """
-    cur = db.cursor()
     cur.execute(sql, [])
 
     mmaint = set(map(lambda x: x[0], cur.fetchall()))
