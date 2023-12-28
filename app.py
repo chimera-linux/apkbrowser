@@ -561,11 +561,12 @@ def apkindex(branch, repo, arch):
     sql = """
     SELECT DISTINCT packages.* FROM packages
     WHERE packages.repo = ?
+      AND packages.arch = ?
     ORDER BY packages.name ASC
     """
 
     cur = db[branch].cursor()
-    cur.execute(sql, [repo])
+    cur.execute(sql, [repo, arch])
 
     fields = [i[0] for i in cur.description]
 
