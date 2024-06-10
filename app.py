@@ -109,11 +109,18 @@ def get_num_packages(branch, name=None, arch=None, repo=None, maintainer=None, o
     where, args = get_filter(name, arch, repo, maintainer, origin, provides=True)
 
     sql = """
-    SELECT DISTINCT count(*) as qty
-    FROM packages
-    LEFT JOIN maintainer ON packages.maintainer = maintainer.id
-    LEFT JOIN provides ON provides.pid = packages.id
-    {}
+    SELECT count(*) FROM (
+        SELECT DISTINCT packages.*, datetime(packages.build_time, 'unixepoch') as build_time,
+            maintainer.name as mname, maintainer.email as memail,
+            datetime(flagged.created, 'unixepoch') as flagged
+        FROM packages
+        LEFT JOIN maintainer ON packages.maintainer = maintainer.id
+        LEFT JOIN flagged ON packages.origin = flagged.origin
+            AND packages.version = flagged.version
+            AND packages.repo = flagged.repo
+        LEFT JOIN provides ON provides.pid = packages.id
+        {}
+    )
     """.format(where)
 
     cur = db[branch].cursor()
@@ -184,10 +191,12 @@ def get_num_contents(branch, name=None, arch=None, repo=None, file=None, path=No
     where, args = get_filter(name, arch, repo, file=file, path=path)
 
     sql = """
-        SELECT count(packages.id)
-        FROM packages
-        JOIN files ON files.pid = packages.id
-        {}
+        SELECT count(*) FROM (
+            SELECT packages.repo, packages.arch, packages.name, files.*
+            FROM packages
+            JOIN files ON files.pid = packages.id
+            {}
+        )
     """.format(where)
 
     cur = db[branch].cursor()
