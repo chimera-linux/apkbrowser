@@ -450,7 +450,7 @@ def contents():
         "path": path if path is not None else "",
         "name": name if name is not None else "",
         "branch": branch if branch is not None else config.get('repository', 'default-branch'),
-        "repo": repo if repo is not None else config.get('repository', 'default-repo'),
+        "repo": repo if repo is not None else "",
         "arch": arch if arch is not None else "",
         "page": int(page) if page is not None else 1
     }
