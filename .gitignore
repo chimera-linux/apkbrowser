@@ -4,3 +4,4 @@
 /static/custom-*.ico
 /config.ini
 /.idea
+/__pycache__/
