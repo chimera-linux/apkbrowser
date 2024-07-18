@@ -63,6 +63,9 @@ def open_databases():
     for branch in get_branches():
         db_file = os.path.join(db_dir, f"cports-{branch}.db")
         db[branch] = sqlite3.connect(db_file)
+        cur = db[branch].cursor()
+        cur.execute("PRAGMA journal_mode = WAL")
+        cur.execute("PRAGMA synchronous = NORMAL")
 
     g._db = db
 
