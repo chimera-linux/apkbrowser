@@ -1,3 +1,4 @@
+import atexit
 import os
 import pathlib
 import sqlite3
@@ -59,7 +60,7 @@ def get_settings():
 def open_databases():
     db = {}
     db_dir = config.get("database", "path")
-    for branch in config.get("repository", "branches").split(","):
+    for branch in get_branches():
         db_file = os.path.join(db_dir, f"cports-{branch}.db")
         db[branch] = sqlite3.connect(db_file)
 
@@ -700,5 +701,36 @@ def apkindex(branch, repo, arch):
     return send_file(icache, mimetype="text/plain")
 
 
+def do_exit():
+    print("running exit commands and exiting...")
+
+    # and a second time, just to run it only once..
+    try:
+        # this is only available inside uwsgi context
+        import uwsgi
+
+        # they start from 1
+        do_once = uwsgi.worker_id() == 1
+    except ImportError:
+        do_once = True
+
+    if do_once:
+        with app.app_context():
+            db = get_db()
+            for branch in get_branches():
+                cur = db[branch].cursor()
+                cur.execute("PRAGMA optimize")
+
+
+try:
+    # this is only available inside uwsgi context
+    import uwsgi
+
+    uwsgi.atexit = do_exit
+except ImportError:
+    pass
+
+
 if __name__ == "__main__":
+    atexit.register(do_exit)
     app.run()
