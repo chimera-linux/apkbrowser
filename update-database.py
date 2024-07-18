@@ -5,6 +5,7 @@ import sqlite3
 import pathlib
 import configparser
 import subprocess
+import time
 from email.utils import parseaddr
 
 config = configparser.ConfigParser()
@@ -428,7 +429,26 @@ def generate(branch, archs):
     url = config.get("repository", "url")
     dbp = config.get("database", "path")
 
-    db = sqlite3.connect(os.path.join(dbp, f"cports-{branch}.db"))
+    db_timeout = 5.0
+    db = sqlite3.connect(
+        os.path.join(dbp, f"cports-{branch}.db"),
+        # when 3.12, use this instead of isolation_level
+        # autocommit=True,
+        isolation_level=None,
+        timeout=db_timeout,
+    )
+
+    cur = db.cursor()
+    retries = 0
+    while retries < 10:
+        try:
+            cur.execute("BEGIN IMMEDIATE")
+            break
+        except sqlite3.OperationalError as e:
+            print(f"it was locked or something: {e}")
+            print(f"waiting {db_timeout}s...")
+            retries += 1
+
     create_tables(db)
 
     repos = config.get("repository", "repos").split(",")
@@ -447,7 +467,9 @@ def generate(branch, archs):
 
     prune_maintainers(db)
 
-    db.commit()
+    cur.execute("COMMIT")
+    # not autoclosed
+    db.close()
 
 
 if __name__ == "__main__":
