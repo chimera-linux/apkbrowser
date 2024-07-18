@@ -22,6 +22,7 @@ website = https://chimera-linux.org
 path = db
 
 [settings]
+branch = yes
 flagging = no
 apk = apk
 apkindex-cache = apkindex_cache
