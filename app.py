@@ -576,7 +576,6 @@ def apkindex(branch, repo, arch):
 
     fields = [i[0] for i in cur.description]
 
-    res = []
     mappings = {
         "name": "P",
         "origin": "o",
