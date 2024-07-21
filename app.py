@@ -52,7 +52,6 @@ def open_databases():
         db_file = os.path.join(db_dir, f"cports-{branch}.db")
         db[branch] = sqlite3.connect(db_file)
         cur = db[branch].cursor()
-        cur.execute("PRAGMA journal_mode = WAL")
         cur.execute("PRAGMA synchronous = NORMAL")
         cur.execute("PRAGMA cache_size = 100000")  # sized in pages
         cur.execute("PRAGMA temp_store = memory")

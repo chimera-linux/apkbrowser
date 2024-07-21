@@ -135,6 +135,11 @@ def dump_adb(adbc, rootn=None):
     return adb
 
 
+def set_options(db):
+    cur = db.cursor()
+    cur.execute("PRAGMA journal_mode = WAL")
+
+
 def create_tables(db):
     cur = db.cursor()
     schema = [
@@ -450,6 +455,7 @@ def generate(branch, archs):
             time.sleep(1)
             retries += 1
 
+    set_options(db)
     create_tables(db)
 
     repos = config.get("repository", "repos").split(",")
