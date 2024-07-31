@@ -135,6 +135,11 @@ def dump_adb(adbc, rootn=None):
     return adb
 
 
+def set_options(db):
+    cur = db.cursor()
+    cur.execute("PRAGMA journal_mode = WAL")
+
+
 def create_tables(db):
     cur = db.cursor()
     schema = [
@@ -325,7 +330,9 @@ def add_packages(db, branch, repo, arch, packages, changed):
             cur.execute(sql, [name, ver, operator, pid])
 
         url = config.get("repository", "url")
-        apk_url = f'{url}/{branch}/{repo}/{arch}/{package["name"]}-{package["version"]}.apk'
+        apk_url = (
+            f'{url}/{branch}/{repo}/{arch}/{package["name"]}-{package["version"]}.apk'
+        )
         files = get_file_list(apk_url)
         filerows = []
         for file in files:
@@ -436,6 +443,8 @@ def generate(branch, archs):
         isolation_level=None,
         timeout=5.0,
     )
+
+    set_options(db)
 
     cur = db.cursor()
     retries = 0
