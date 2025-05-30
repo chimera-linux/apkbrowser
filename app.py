@@ -560,43 +560,8 @@ def apkindex(branch, repo, arch):
 
     icache = get_apkindex_cache() / f"apkindex_{repo.replace('/', '_')}_{arch}.txt"
 
-    if icache.is_file():
-        # exists, send it as is; it will be deleted on next repo update
-        return send_file(icache, mimetype="text/plain")
-
-    sql = """
-    SELECT DISTINCT packages.* FROM packages
-    WHERE packages.repo = ?
-      AND packages.arch = ?
-    ORDER BY packages.name ASC
-    """
-
-    cur = db[branch].cursor()
-    cur.execute(sql, [repo, arch])
-
-    fields = [i[0] for i in cur.description]
-
-    mappings = {
-        "name": "P",
-        "origin": "o",
-        "version": "V",
-        "arch": "A",
-        "description": "T",
-        "url": "U",
-        "license": "L",
-        "build_time": "t",
-    }
-
-    icache.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(icache, "w") as outf:
-        for row in cur.fetchall():
-            for i in range(len(fields)):
-                idxn = mappings.get(fields[i], None)
-                if idxn is None:
-                    continue
-                outf.write(f"{idxn}:{str(row[i]).strip()}\n")
-            outf.write("\n")
+    if not icache.is_file():
+        return abort(404)
 
     return send_file(icache, mimetype="text/plain")
 

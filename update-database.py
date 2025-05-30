@@ -367,6 +367,46 @@ def del_packages(db, repo, arch, remove):
             print(f"could not remove {name}={ver} from {repo}/{arch}")
 
 
+def update_v2index(db, repo, arch):
+    cachev = config.get('settings', 'apkindex-cache', fallback='apkindex_cache')
+    icache = pathlib.Path(cachev) / f"apkindex_{repo.replace('/', '_')}_{arch}.txt"
+
+    cur = db.cursor()
+
+    sql = """
+    SELECT DISTINCT packages.* FROM packages
+    WHERE packages.repo = ?
+      AND packages.arch = ?
+    ORDER BY packages.name ASC
+    """
+    cur.execute(sql, [repo, arch])
+
+    fields = [i[0] for i in cur.description]
+
+    mappings = {
+        "name": "P",
+        "origin": "o",
+        "version": "V",
+        "arch": "A",
+        "description": "T",
+        "url": "U",
+        "license": "L",
+        "build_time": "t",
+    }
+
+    icache.parent.mkdir(parents=True, exist_ok=True)
+    icache.unlink(missing_ok=True)
+
+    with open(icache, "w") as outf:
+        for row in cur.fetchall():
+            for i in range(len(fields)):
+                idxn = mappings.get(fields[i], None)
+                if idxn is None:
+                    continue
+                outf.write(f"{idxn}:{str(row[i]).strip()}\n")
+            outf.write("\n")
+
+
 def process_apkindex(db, branch, repo, arch, contents):
     adbc = dump_adb(contents)
     packages = {}
@@ -396,12 +436,7 @@ def process_apkindex(db, branch, repo, arch, contents):
     )
     del_packages(db, repo, arch, local - remote)
 
-    (
-        pathlib.Path(
-            config.get("settings", "apkindex-cache", fallback="apkindex_cache")
-        )
-        / f"apkindex_{repo.replace('/', '_')}_{arch}.txt"
-    ).unlink(missing_ok=True)
+    update_v2index(db, repo, arch)
 
 
 def prune_maintainers(db):
